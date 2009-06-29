@@ -1,8 +1,24 @@
 package Algorithm::Simplex::PDL;
 use strict;
-use lib '/var/www/cgi-bin/Tucker';
-use base 'Algorithm::Simplex::Tucker';
+use base 'Algorithm::Simplex';
 use PDL;
+
+=head1 Name
+
+Algorithm::Simplex::PDL
+
+PDL version of the Simplex Algorithm
+
+=head1 Methods
+
+=head2 pivot
+
+Do the algebra of a Tucker/Bland pivot.  i.e. Traverse from one node to and 
+adjacent node along the Simplex of feasible solutions.
+
+=cut
+
+# TODO: Probably need EPSILON for zero approximation check like in Float model.
 
 ####---- subs below
 

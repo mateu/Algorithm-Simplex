@@ -1,12 +1,27 @@
 package Algorithm::Simplex::Float;
 use strict;
-use base 'Algorithm::Simplex::Tucker';
+use base 'Algorithm::Simplex';
 
 use Readonly;
 Readonly my $EPSILON => 1e-14;
 
 my $one     =  1;
 my $neg_one = -1;
+
+=head1 Name
+
+Algorithm::Simplex::Float
+
+Float version of the Simplex Algorithm
+
+=head1 Methods
+
+=head2 pivot
+
+Do the algebra of a Tucker/Bland pivot.  i.e. Traverse from one node to and 
+adjacent node along the Simplex of feasible solutions.
+
+=cut
 
 sub pivot {
 
@@ -39,6 +54,13 @@ sub pivot {
     }
 }
 
+=head2 tableau_is_optimal
+
+Check the basement row to see if any positive entries exist.  Existence of
+a positive entry means the solution is sub-optimal and optimal otherwise.
+This is how we decide when to stop the algorithm.
+
+=cut
 
 sub tableau_is_optimal {
     my $self = shift;
@@ -55,7 +77,12 @@ sub tableau_is_optimal {
     return $optimal_flag;
 }
 
+=head2 determine_simplex_pivot_columns
 
+Find the columns that are candiates for pivoting in.  This is based on 
+their basement row value being greater than zero.
+
+=cut
 
 sub determine_simplex_pivot_columns {
     my $self = shift;
@@ -78,6 +105,13 @@ sub determine_simplex_pivot_columns {
     }
     return ( @simplex_pivot_column_numbers );
 }
+
+=head2 determine_positive_ratios
+
+Once a a pivot column has been chosen then we choose a pivot row based on 
+the smallest postive ration.  This function is a helper to achieve that.
+
+=cut
 
 sub determine_positive_ratios {
     my $self = shift;

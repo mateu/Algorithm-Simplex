@@ -1,297 +1,341 @@
 package Algorithm::Simplex;
 use strict;
 use warnings;
+use vars '$AUTOLOAD';    # Keep 'use strict' happy
+use Carp;
 
-use Math::Cephes::Fraction qw(:fract);
-use HTML::TreeBuilder;
-use Data::Dumper;
+=head1 Name
 
-BEGIN { require 5.008001; }
+Algorithm::Simplex
 
-=head1 DESCRIPTION
+=head1 Methods
 
-Construct a Tucker Tableau object that contains a tucker tableau matrix
-along with print, convert, decide_pivots and make_pivot methods.
+=head2 new
+
+Create a new tableau which is a ArrayRef[ArrayRef], i.e. two-dimensional array.
 
 =cut
-
-our $VERSION = '0.24';
 
 sub new {
     my $class = $_[0];
-    bless {
-        _tableau           => $_[1],
-        _number_of_rows    => $_[2],
-        _number_of_columns => $_[3],
-        _x_variables       => undef,
-        _y_variables       => undef,
-        _v_variables       => undef,
-        _u_variables       => undef,
-        _html_matrix       => undef,
-        _title             => undef,
-    }, $class;
+    bless { _tableau => $_[1], }, $class;
 }
 
+use Class::MethodMaker abstract => [
+    qw(
+      tableau_is_optimal
+      pivot
+      )
+];
 
+{
+    my %_attrs = (
+        _tableau           => 'read',
+        _number_of_rows    => 'read',
+        _number_of_columns => 'read',
+    );
 
-sub set_tableau {
-    my ( $self, $session, $is_example, $tmp_path, $examples_path  ) = @_;
+    sub _accessible {
+        my ( $self, $attr, $mode ) = @_;
+        $_attrs{$attr} =~ m{$mode};
+    }
+}
+
+sub Algorithm::Simplex::AUTOLOAD {
+    no strict "refs";
+    my ( $self, $newval ) = @_;
+
+    # Handle get_ methods
+    if ( $AUTOLOAD =~ m{.*::get(_\w+)} && $self->_accessible( $1, 'read' ) ) {
+        my $attr_name = $1;
+        *{$AUTOLOAD} = sub { return $_[0]->{$attr_name} };
+        return $self->{$attr_name};
+    }
+
+    # Otherwise a method has been called that doesn't exist
+    croak "No such method: $AUTOLOAD";
+}
+
+sub Algorithm::Simplex::DESTROY {
+    my $self = shift;
+}
+
+=head2 set_generic_variable_names_from_dimensions
+
+Create variable names: x1, x2 ... , y1, y2, ... , u1, u2 ... , v1, v2 ...
+
+Our variables are represented by:
+
+    x, y, u, and v 
     
-    my $html_tableau = return_html_tableau_from_file( $session, $is_example, $tmp_path, $examples_path  );
-    my ($string_matrix, $number_of_rows, $number_of_columns) = get_string_matrix_and_dimensions_from($html_tableau);
-    $self->set_row_and_column_numbers($number_of_rows, $number_of_columns);   
-    # Which model are we working with.
-    # print "ref object is: ", ref($self), "\n";
-    if ( ref($self) =~ m{Rational}  ) {  
-        $self->string_matrix_to_fract_matrix($string_matrix); 
-    }
-    else {
-        $self->string_matrix_to_float_matrix($string_matrix); 
-    }
-    $self->set_variable_names_from($html_tableau);
-    $self->set_LP_title_from($html_tableau);
-}
+as found in Nering and Tuckers' book. 
 
-
-
-sub save_html_tableau_to_file {
-    # Save matrix and variables from which we can reconstruct the full Tucker tableau
-    my $self            = shift;
-    my $session         = shift;
-    my $is_example      = shift;
-    my $tmp_path        = shift;
-    my $examples_path   = shift;
-    
-    # When loading new examples, make sure the $session does not conflict
-    # with existing example file names.
-    my $session_file = $is_example ? $examples_path . $session . '.html'
-                       : $tmp_path . $session . '.html'
-                       ;
-                       
-    open( F, ">$session_file" )
-      or die "Can't open storage file: $session_file for writing\n";
-    print F $self->title_as_HTML,           "\n";
-    print F $self->matrix_as_HTML,       "\n";
-    print F $self->variables_as_HTML,   "\n";
-    close F;
-
-}
-
-####---- helper subroutines
-sub get_string_matrix_and_dimensions_from {
-    my $html_tableau = shift;
-    my $page_tree     = HTML::TreeBuilder->new_from_content($html_tableau);
-    my @tables        = $page_tree->look_down( _tag => 'table' );
-    my $string_matrix;
-
-    # Get First Table
-    my @rows = $tables[0]->look_down( _tag => 'tr' );
-    my $n_rows = $#rows;
-    my $n_cols;
-    for my $row ( 0 .. $n_rows ) {
-        my @cells = $rows[$row]->look_down( _tag => 'td' );
-        $n_cols = $#cells;
-        for my $cell ( 0 .. $n_cols ) {
-            $string_matrix->[$row]->[$cell] =
-              $cells[$cell]->as_trimmed_text;
-        }
-    }
-
-    return ( $string_matrix, $n_rows, $n_cols );
-}
-
-sub set_variable_names_from {
-
-    # Stepping through each variable of each of the four
-    # (primal/dual dependent/independent) categories.
-    # Then each of the possibly (currently) two spans
-    # for the generic and descriptive variable names.
-    my $self          = shift;
-    my $html_tableau = shift;
-    my $page_tree     = HTML::TreeBuilder->new_from_content($html_tableau);
-    my @divs          = $page_tree->look_down( _tag => 'div' );
-    foreach my $div (@divs) {
-
-        #print "div encountered...";
-        my $variable_type                = $div->attr('name');
-        my $variable_string              = '_' . $variable_type . '_variables';
-        my $occurrences_of_variable_type = 0;
-        my @vars                         = $div->look_down( _tag => 'var' );
-
-        #print "var encountered...";
-        foreach my $var (@vars) {
-            my @spans = $var->look_down( _tag => 'span' );
-            foreach my $span (@spans) {
-
-                #print "span encounter";
-                if ( $span->attr('name') eq 'generic' ) {
-                    $self->{$variable_string}->[$occurrences_of_variable_type]
-                      ->{'generic'} = $span->as_trimmed_text;
-
-                    #print  $span->as_trimmed_text;
-                }
-                if ( $span->attr('name') eq 'descriptive' ) {
-                    $self->{$variable_string}->[$occurrences_of_variable_type]
-                      ->{'descriptive'} = $span->as_trimmed_text;
-                }
-            }
-
-            $occurrences_of_variable_type++;
-
-        }
-
-    }
-
-}
-
-
-# set from stored html tableau
-sub set_LP_title_from {
-    my $self          = shift;
-    my $html_tableau  = shift;
-    my $page_tree     = HTML::TreeBuilder->new_from_content($html_tableau);
-    my @divs          = $page_tree->look_down( _tag => 'div' );
-    my $title;
-    foreach my $div (@divs) {
-        $title = $div if $div->attr('class') eq 'title';
-    }
-    $self->{_title}   = $title->as_trimmed_text;
-}
-
-sub set_row_and_column_numbers {
-    my $self = shift;
-    $self->{_number_of_rows} = shift;
-    $self->{_number_of_columns} = shift;
-}
-
-# set from string input
-sub set_title {
-    my $self = shift;
-    my $title = shift;
-    $self->{_title} = $title;
-}
-
-
-sub return_html_tableau_from_file {
-
-    my $session            = shift;
-    my $is_example      = shift;
-    my $tmp_path         = shift;
-    my $examples_path = shift;
-    my $session_file;
-    if ($is_example) {
-        $session_file =
-         $examples_path . $session . '.html';
-    }
-    else {
-        $session_file =
-         $tmp_path. $session . '.html';
-    }
-    open( F, "$session_file" )
-      or die "Can't open storage file: $session_file for reading\n";
-    my $table;
-    while (<F>) {
-        $table .= $_;
-    }
-    close F;
-
-    return ($table);
-}
-
-
-sub write_to_tied_title_hash {
-    # recall the title hash is tied to a file
-    my $self            = shift;
-    my $example_file    = shift;
-    my $problem_title   = shift;
-    my $titles_file     = shift;
-    
-    use Tie::File::AsHash;
-    tie my %titles, 'Tie::File::AsHash', $titles_file, split => ' => '
-            or die "ERROR: Problem tying %titles: does the titles file, $titles_file have a problem? ERROR: $!";
-            
-     if ( exists $titles{$example_file} ) {
-        # file name already exists, append a random number to create a unique one.
-        srand;
-        my $random_number = rand;
-        $example_file .= "_$random_number";
-     }
-     # assign title to file_name
-     $titles{$example_file} = $problem_title;
-     # write out to file
-     untie %titles;
-     # return the file_name in case it was changed to avoid overwriting already existing example file
-     
-     return $example_file;
-}
-
-sub get_tied_title_hash {
-    my $self = shift;
-    my $titles_file = shift;
-#-mxh
-#print Dumper $titles_file;
-    use Tie::File::AsHash;
-    tie my %titles, 'Tie::File::AsHash', $titles_file, split => ' => '
-            or die "Problem tying %titles: $!";
-     my %tmp_titles = %titles;
-     untie %titles;
-     return \%tmp_titles;
-}
-
-sub string_matrix_to_fract_matrix {
-    #print "string to fract";
-    my $self = shift;
-    my $string_matrix = shift;
-    # Make each integer and rational entry a fractional object for rational arthimetic
-    for my $i ( 0 .. $self->{_number_of_rows} ) {
-        for my $j ( 0 .. $self->{_number_of_columns} ) {
-            
-            # Check for existing rationals indicated with "/"
-            if ( $string_matrix->[$i]->[$j] =~ m{(\-?\d+)\/(\-?\d+)} ) {
-                $self->{_tableau}->[$i]->[$j] = fract( $1, $2 );
-                
-            }
-            else {
-                $self->{_tableau}->[$i]->[$j] =
-                  fract( $string_matrix->[$i]->[$j], 1 );
-            }
-        }
-    }
-}
-
-sub string_matrix_to_float_matrix {
-    my $self = shift;
-    my $string_matrix = shift;
-    # Make each integer and rational entry a fractional object for rational arthimetic
-    for my $i ( 0 .. $self->{_number_of_rows} ) {
-        for my $j ( 0 .. $self->{_number_of_columns} ) {
-    
-                # Check for existing rationals indicated with "/"
-            if ( $string_matrix->[$i]->[$j] =~ m{(\-?\d+)\/(\-?\d+)} ) {
-                $self->{_tableau}->[$i]->[$j] = $1 / $2;
-            }
-            else {
-                $self->{_tableau}->[$i]->[$j] = $string_matrix->[$i]->[$j];
-            }
-        }
-    }
-}
-
-sub float_matrix_to_pdl_matrix {
-	my $self = shift;
-	
-}
-
-=head1 AUTHORS
-
-Mateu X. Hunter C<hunter@missoula.org>
-
-Strong design influence by George McRae.
-
-=head1 LICENSE
-
-You may distribute this code under the same terms as Perl itself.
+x and y are for the primal LP while u and v belong to the dual LP.
 
 =cut
 
+sub set_generic_variable_names_from_dimensions {
+    my $self = shift;
+    my ( @x, @y, @v, @u );
+    for my $i ( 0 .. $self->{_number_of_rows} - 1 ) {
+        my $tmp_num = $i + 1;
+        my $y       = 'y' . $tmp_num;
+        $self->{_y_variables}->[$i]->{'generic'} = $y;
+        my $v = 'v' . $tmp_num;
+        $self->{_v_variables}->[$i]->{'generic'} = $v;
+    }
+    for my $j ( 0 .. $self->{_number_of_columns} - 1 ) {
+        my $tmp_num = $j + 1;
+        my $x       = 'x' . $tmp_num;
+        $self->{_x_variables}->[$j]->{'generic'} = $x;
+        my $u = 'u' . $tmp_num;
+        $self->{_u_variables}->[$j]->{'generic'} = $u;
+    }
+}
+
+=head2 get_bland_number_for
+
+Given a column number (which represents a u variable) build the bland number 
+from the generic variable name.
+
+=cut
+
+sub get_bland_number_for {
+    my $self          = shift;
+    my $variable_type = shift;
+    my $variables     = '_' . $variable_type . '_variables';
+    my $index         = shift;
+    my $generic_name  = $self->{$variables}->[$index]->{'generic'};
+    $generic_name =~ m{(.)(\d+)};
+    my $var = $1;
+    my $num = $2;
+    my $start_num =
+        $var eq 'x' ? 1
+      : $var eq 'y' ? 2
+      : $var eq 'v' ? 4
+      : $var eq 'u' ? 3
+      :               die "Variable name: $var does not equal x, y, v or u";
+    my $bland_number = $start_num . $num;
+    return $bland_number;
+}
+
+=head2 determine_bland_pivot_column_number
+
+Find the pivot column using Bland ordering technique to prevent cycles.
+
+=cut
+
+sub determine_bland_pivot_column_number {
+    my $self                         = shift;
+    my @simplex_pivot_column_numbers = @_;
+
+    my @bland_number_for_simplex_pivot_column;
+    foreach my $col_number (@simplex_pivot_column_numbers) {
+        push @bland_number_for_simplex_pivot_column,
+          $self->get_bland_number_for( 'x', $col_number );
+    }
+
+# Pass blands number to routine that returns index of location where minimum bland occurs.
+# Use this index to return the bland column column number from @positive_profit_column_numbers
+    my @bland_column_number_index =
+      $self->min_index( \@bland_number_for_simplex_pivot_column );
+    my $bland_column_number_index = $bland_column_number_index[0];
+
+    return $simplex_pivot_column_numbers[$bland_column_number_index];
+}
+
+=head2 determine_bland_pivot_row_number
+
+Find the pivot row using Bland ordering technique to prevent cycles.
+
+=cut
+
+sub determine_bland_pivot_row_number {
+    my $self = shift;
+    my ( $positive_ratios, $positive_ratio_row_numbers ) = @_;
+
+   # Now that we have the ratios and their respective rows we can find the min
+   # and then select the lowest bland min if there are ties.
+    my @min_indices = $self->min_index($positive_ratios);
+    my @min_ratio_row_numbers =
+      map { $positive_ratio_row_numbers->[$_] } @min_indices;
+    my @bland_number_for_min_ratio_rows;
+    foreach my $row_number (@min_ratio_row_numbers) {
+        push @bland_number_for_min_ratio_rows,
+          $self->get_bland_number_for( 'y', $row_number );
+    }
+
+# Pass blands number to routine that returns index of location where minimum bland occurs.
+# Use this index to return the bland row number.
+    my @bland_min_ratio_row_index =
+      $self->min_index( \@bland_number_for_min_ratio_rows );
+    my $bland_min_ratio_row_index = $bland_min_ratio_row_index[0];
+    return $min_ratio_row_numbers[$bland_min_ratio_row_index];
+}
+
+=head2 min_index
+
+Detemine the index of the element with minimal value.  
+Used when finding bland pivots.
+
+=cut
+
+sub min_index {
+    my $self = shift;
+    my $l    = $_[0];
+    my $n    = @{$l};
+    return () unless $n;
+    my $v_min = $l->[0];
+    my @i_min = (0);
+
+    for ( my $i = 1 ; $i < $n ; $i++ ) {
+        if ( $l->[$i] < $v_min ) {
+            $v_min = $l->[$i];
+            @i_min = ($i);
+        }
+        elsif ( $l->[$i] == $v_min ) {
+            push @i_min, $i;
+        }
+    }
+    return @i_min;
+
+}
+
+=head2 exchange_pivot_variables
+
+Exchange the variables when the a pivot is done.  The method pivot does the
+algrebra while this method does the variable swapping.
+
+=cut
+
+sub exchange_pivot_variables {
+    my $self                = shift;
+    my $pivot_row_number    = shift;
+    my $pivot_column_number = shift;
+
+    # exchange variables based on $pivot_column_number and $pivot_row_number
+    my $increasing_primal_variable =
+      $self->{_x_variables}->[$pivot_column_number];
+    my $zeroeing_primal_variable = $self->{_y_variables}->[$pivot_row_number];
+    $self->{_x_variables}->[$pivot_column_number] = $zeroeing_primal_variable;
+    $self->{_y_variables}->[$pivot_row_number] = $increasing_primal_variable;
+
+    my $increasing_dual_variable = $self->{_v_variables}->[$pivot_row_number];
+    my $zeroeing_dual_variable =
+      $self->{_u_variables}->[$pivot_column_number];
+    $self->{_v_variables}->[$pivot_row_number]    = $zeroeing_dual_variable;
+    $self->{_u_variables}->[$pivot_column_number] = $increasing_dual_variable;
+}
+
+=head2 set_number_of_rows_and_columns
+
+Given a tableau (matrix), determine its size.
+
+=cut
+
+
+sub set_number_of_rows_and_columns {
+    my $self = shift;
+
+    my @rows           = @{ $self->{_tableau} };
+    my $number_of_rows = @rows;
+    $number_of_rows -= 1;
+    $self->{_number_of_rows} = $number_of_rows;
+
+    my @columns           = @{ $self->{_tableau}->[0] };
+    my $number_of_columns = @columns;
+    $number_of_columns -= 1;
+    $self->{_number_of_columns} = $number_of_columns;
+
+}
+
+=head2 get_row_and_column_numbers 
+
+Get the dimensions of the tableau.
+
+=cut
+
+sub get_row_and_column_numbers {
+    my $self = shift;
+    return $self->{_number_of_rows}, $self->{_number_of_columns};
+}
+
+=head2 determine_bland_pivot_row_and_column_numbers
+
+Higher level functions that uses other to return the (bland) pivot point.
+
+=cut
+
+
+sub determine_bland_pivot_row_and_column_numbers {
+    my $self = shift;
+
+    #return "you";
+    my @simplex_pivot_columns = $self->determine_simplex_pivot_columns;
+    my $tmp_out               = "pivot column: " . $simplex_pivot_columns[0];
+
+    #return $tmp_out;
+    my $pivot_column_number =
+      $self->determine_bland_pivot_column_number(@simplex_pivot_columns);
+
+    #return "pivot column number: $pivot_column_number";
+    my ( $positive_ratios, $positive_ratio_row_numbers ) =
+      $self->determine_positive_ratios($pivot_column_number);
+
+    #return "postive_ratio: $positive_ratios->[0]";
+    my $pivot_row_number =
+      $self->determine_bland_pivot_row_number( $positive_ratios,
+        $positive_ratio_row_numbers );
+
+    #return "pivot row: $pivot_row_number";
+    return ( $pivot_row_number, $pivot_column_number );
+}
+
 1;
+
+__END__
+
+=head1 Description
+
+Base class for the Simplex model.  It defines some of the methods concretely,
+and others such as:
+
+=over 3
+
+=item *
+
+pivot
+
+=item *
+
+tableau_is_optimal
+
+=item *
+
+determine_positive_ratios
+
+=item *
+
+deteremine_simplex_pivot_columns
+
+=back
+
+are implemented in one of the three model types:
+
+=over 3
+
+=item *
+
+Float
+
+=item *
+
+Rational
+
+=item *
+
+PDL
+
+=back
+
+=cut
