@@ -1,4 +1,6 @@
+#!/usr/bin/env perl
 use strict;
+use warnings;
 use Benchmark;
 use PDL;
 use Algorithm::Simplex;
@@ -14,8 +16,6 @@ perl benchmark_random_LPs.pl --rows 50 --columns 50 -n 50
 
 =cut
 
-
-#use Model::Generic;
 use Getopt::Long;
 use Algorithm::Simplex::Float;
 use Algorithm::Simplex::PDL;

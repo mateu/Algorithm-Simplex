@@ -4,6 +4,8 @@ use warnings;
 use vars '$AUTOLOAD';    # Keep 'use strict' happy
 use Carp;
 
+our $VERSION = '0.24';
+
 =head1 Name
 
 Algorithm::Simplex
@@ -294,6 +296,16 @@ sub determine_bland_pivot_row_and_column_numbers {
 1;
 
 __END__
+
+=head1 Authors
+
+Mateu X. Hunter C<hunter@missoula.org>
+
+Strong design influence by George McRae at the University of Montana.
+
+=head1 License
+
+You may distribute this code under the same terms as Perl itself.
 
 =head1 Description
 

@@ -18,4 +18,5 @@ requires 'HTML::TreeBuilder';
 requires 'Tie::File::AsHash';
 requires 'Readonly';
 
+install_script glob('script/*.pl');
 WriteAll;
