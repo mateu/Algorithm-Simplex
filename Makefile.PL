@@ -9,14 +9,14 @@ author 'Mateu X Hunter';
 license 'perl';
 version_from 'lib/Algorithm/Simplex.pm';
 
-requires 'Class::MethodMaker';
-requires 'Math::Cephes::Fraction';
-requires 'PDL';
-requires 'Class::MethodMaker';
-requires 'HTML::Table';
-requires 'HTML::TreeBuilder';
-requires 'Tie::File::AsHash';
-requires 'Readonly';
+
+requires(
+'Class::MethodMaker'            => 0,
+'Math::Cephes::Fraction'        => 0,
+'PDL'                           => 0,
+'Readonly'                      => 0,
+);
+
 
 install_script glob('script/*.pl');
 WriteAll;

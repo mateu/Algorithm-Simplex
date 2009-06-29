@@ -4,17 +4,30 @@ use warnings;
 use vars '$AUTOLOAD';    # Keep 'use strict' happy
 use Carp;
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 =head1 Name
 
-Algorithm::Simplex
+Algorithm::Simplex - An implementation of the Simplex Algorithm.
+
+=head1 Synopsis
+
+Given a linear program formulated as a Tucker tableau, a 2D matrix or 
+ArrayRef[ArrayRef] in Perl, then seek an optimal solution.
+
+    my $initial_tableau =
+          [ [ 8, 3, 4, 40 ], [ 40, 10, 10, 200 ], [ 160, 60, 80, 0 ], ];
+    my $final_tableau_object = solve_LP('rational', $initial_tableau);
+
+See the t/example_LPs.t for usage examples.  In particular, 
+study the I<solve_LP> subroutine.  
 
 =head1 Methods
 
 =head2 new
 
-Create a new tableau which is a ArrayRef[ArrayRef], i.e. two-dimensional array.
+Create a new tableau which has a _tableau attibute that is a 
+ArrayRef[ArrayRef], i.e. two-dimensional array.
 
 =cut
 
@@ -309,8 +322,8 @@ You may distribute this code under the same terms as Perl itself.
 
 =head1 Description
 
-Base class for the Simplex model.  It defines some of the methods concretely,
-and others such as:
+Base class for the Simplex model using Tucker tableaus.  
+It defines some of the methods concretely, and others such as:
 
 =over 3
 
@@ -328,7 +341,7 @@ determine_positive_ratios
 
 =item *
 
-deteremine_simplex_pivot_columns
+determine_simplex_pivot_columns
 
 =back
 
@@ -349,5 +362,9 @@ Rational
 PDL
 
 =back
+
+=head1 Limitations
+
+The algorithm requires that the initial tableau be a feasible solution.  
 
 =cut
