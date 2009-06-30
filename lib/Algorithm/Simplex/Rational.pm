@@ -9,9 +9,7 @@ my $neg_one = fract( 1, -1 );
 
 =head1 Name
 
-Algorithm::Simplex::Ractional
-
-Ractional (Fraction) version of the Simplex Algorithm
+Algorithm::Simplex::Rational - Rational version of the Simplex Algorithm
 
 =head1 Methods
 

@@ -5,12 +5,11 @@ use Benchmark;
 use PDL;
 use Algorithm::Simplex;
 
-=head1 Model Comparison
+=head1 Name
 
-Benchmark the three models against a number of randomly generated
-Linear Programs.
+benchmark_random_LPs.pl - Benchmark the three models w/ random Linear Programs
 
-=head1 USAGE
+=head1 Usage
 
 perl benchmark_random_LPs.pl --rows 50 --columns 50 -n 50
 
@@ -44,7 +43,12 @@ timethese(
     }
 );
 
-####---- subs below
+=cut head2 solve_LP
+
+A function to step through a set of feasible solutions (tableaus) until
+we reach an optimal solution or until we exceed a pre-defined number of steps.
+
+=cut
 
 sub solve_LP {
     my $model   = shift;

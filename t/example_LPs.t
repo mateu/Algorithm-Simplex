@@ -8,6 +8,7 @@ use Algorithm::Simplex::Rational;
 use Data::Dumper;
 use Readonly;
 Readonly my $EPSILON => 1e-13;
+Readonly my $MAXIMUM_PIVOTS => 200; # 
 
 my $tests = {
     'Baumol Advertising' => {
@@ -142,7 +143,7 @@ sub solve_LP {
         $tableau_object->exchange_pivot_variables( $pivot_row_number,
             $pivot_column_number );
         $counter++;
-        die "Too many loops" if ( $counter > 200 );
+        die "HALT: Exceded maximum number of pivots allowed: $MAXIMUM_PIVOTS" if ( $counter > $MAXIMUM_PIVOTS );
     }
     return $tableau_object;
 }

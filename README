@@ -7,6 +7,7 @@ use the Models of which there are three:
 * Rational - Provided by Math::Cephes::Fraction.=
 * PDL - Use piddles for execution speed in larger sized problems
 
+Also see t/example_LPs.t for how to implement a solver subroutine.
 
 The normal Perl types model has OK performance and is actually the fastest 
 up to around 200x200 matrices.
@@ -15,7 +16,7 @@ The Fractions (Rationals) model uses the module Math::Fractions::Cephes.
 It is the slowest, but it is exact when starting with a tableau (matrix) of 
 rationals. 
 
-PDL Model uses the Perl Data Language.  It is intended for larger size 
+PDL Model uses the Perl Data Language.  It is intended for larger sized 
 problems as it's the fastest choice when the tableau is > 200x200.  It has
 been tested on matrices of 2000x2000 in size.  Don't be fooled - PDL is fast.
 Hey it's C and fortran doing the arithmetic operations.

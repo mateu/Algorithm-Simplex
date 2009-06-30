@@ -10,15 +10,13 @@ my $neg_one = -1;
 
 =head1 Name
 
-Algorithm::Simplex::Float
-
-Float version of the Simplex Algorithm
+Algorithm::Simplex::Float - Float version of the Simplex Algorithm
 
 =head1 Methods
 
 =head2 pivot
 
-Do the algebra of a Tucker/Bland pivot.  i.e. Traverse from one node to and 
+Do the algebra of a Tucker/Bland pivot.  i.e. Traverse from one node to an 
 adjacent node along the Simplex of feasible solutions.
 
 =cut

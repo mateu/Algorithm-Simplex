@@ -365,6 +365,12 @@ PDL
 
 =head1 Limitations
 
-The algorithm requires that the initial tableau be a feasible solution.  
+The API is going to change.
+
+The algorithm requires that the initial tableau be a feasible solution.
+
+=head1 Development
+
+http://github.com/mateu/Algorithm-Simplex
 
 =cut

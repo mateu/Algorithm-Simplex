@@ -5,9 +5,7 @@ use PDL;
 
 =head1 Name
 
-Algorithm::Simplex::PDL
-
-PDL version of the Simplex Algorithm
+Algorithm::Simplex::PDL - PDL version of the Simplex Algorithm
 
 =head1 Methods
 
