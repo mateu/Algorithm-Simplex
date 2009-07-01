@@ -4,7 +4,7 @@ use warnings;
 use vars '$AUTOLOAD';    # Keep 'use strict' happy
 use Carp;
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 =head1 Name
 
@@ -13,10 +13,15 @@ Algorithm::Simplex - An implementation of the Simplex Algorithm.
 =head1 Synopsis
 
 Given a linear program formulated as a Tucker tableau, a 2D matrix or 
-ArrayRef[ArrayRef] in Perl, then seek an optimal solution.
+ArrayRef[ArrayRef] in Perl, seek an optimal solution.
 
     my $initial_tableau =
-          [ [ 8, 3, 4, 40 ], [ 40, 10, 10, 200 ], [ 160, 60, 80, 0 ], ];
+      [ 
+          [   8,  3,  4,  40 ], 
+          [  40, 10, 10, 200 ], 
+          [ 160, 60, 80,   0 ],
+      ];
+      
     my $final_tableau_object = solve_LP('rational', $initial_tableau);
 
 See the t/example_LPs.t for usage examples.  In particular, 
@@ -26,7 +31,7 @@ study the I<solve_LP> subroutine.
 
 =head2 new
 
-Create a new tableau which has a _tableau attibute that is a 
+Create a new tableau which has a _tableau attribute that is a 
 ArrayRef[ArrayRef], i.e. two-dimensional array.
 
 =cut

@@ -143,7 +143,7 @@ sub solve_LP {
         $tableau_object->exchange_pivot_variables( $pivot_row_number,
             $pivot_column_number );
         $counter++;
-        die "HALT: Exceded maximum number of pivots allowed: $MAXIMUM_PIVOTS" if ( $counter > $MAXIMUM_PIVOTS );
+        die "HALT: Exceeded the maximum number of pivots allowed: $MAXIMUM_PIVOTS" if ( $counter > $MAXIMUM_PIVOTS );
     }
     return $tableau_object;
 }
