@@ -1,10 +1,35 @@
 package Algorithm::Simplex;
-use strict;
-use warnings;
-use vars '$AUTOLOAD';    # Keep 'use strict' happy
-use Carp;
+use Moose;
 
-our $VERSION = '0.26';
+our $VERSION = '0.39';
+
+has tableau => (
+    is       => 'rw',
+    isa      => 'ArrayRef[ArrayRef]',
+    required => 1,
+);
+
+has number_of_rows => (
+    is  => 'rw',
+    isa => 'Int',
+);
+
+has number_of_columns => (
+    is  => 'rw',
+    isa => 'Int',
+);
+
+has EPSILON => (
+    isa     => 'Num',
+    is      => 'ro',
+    default => 1e-14,
+);
+
+has MAXIMUM_PIVOTS => (
+    isa     => 'Int',
+    is      => 'rw',
+    default => 200,
+);
 
 =head1 Name
 
@@ -29,82 +54,34 @@ study the I<solve_LP> subroutine.
 
 =head1 Methods
 
-=head2 new
 
-Create a new tableau which has a _tableau attribute that is a 
-ArrayRef[ArrayRef], i.e. two-dimensional array.
+
+
+=head2 BUILD
+
+Set the dimensions and variable names of the tiven tableau.
 
 =cut
 
-sub new {
-    my $class = $_[0];
-    bless { _tableau => $_[1], }, $class;
-}
-
-use Class::MethodMaker abstract => [
-    qw(
-      tableau_is_optimal
-      pivot
-      )
-];
-
-{
-    my %_attrs = (
-        _tableau           => 'read',
-        _number_of_rows    => 'read',
-        _number_of_columns => 'read',
-    );
-
-    sub _accessible {
-        my ( $self, $attr, $mode ) = @_;
-        $_attrs{$attr} =~ m{$mode};
-    }
-}
-
-sub Algorithm::Simplex::AUTOLOAD {
-    no strict "refs";
-    my ( $self, $newval ) = @_;
-
-    # Handle get_ methods
-    if ( $AUTOLOAD =~ m{.*::get(_\w+)} && $self->_accessible( $1, 'read' ) ) {
-        my $attr_name = $1;
-        *{$AUTOLOAD} = sub { return $_[0]->{$attr_name} };
-        return $self->{$attr_name};
-    }
-
-    # Otherwise a method has been called that doesn't exist
-    croak "No such method: $AUTOLOAD";
-}
-
-sub Algorithm::Simplex::DESTROY {
+sub BUILD {
     my $self = shift;
-}
-
-=head2 set_generic_variable_names_from_dimensions
-
-Create variable names: x1, x2 ... , y1, y2, ... , u1, u2 ... , v1, v2 ...
-
-Our variables are represented by:
-
-    x, y, u, and v 
     
-as found in Nering and Tuckers' book. 
+    # Set dimensions of A matrix from Ax <= y
+    # formerly known as set_row_and_column_numbers()
+    $self->number_of_rows( scalar @{ $self->tableau } - 1 );
+    $self->number_of_columns( scalar @{ $self->tableau->[0] } - 1 );
 
-x and y are for the primal LP while u and v belong to the dual LP.
-
-=cut
-
-sub set_generic_variable_names_from_dimensions {
-    my $self = shift;
+    # Given variables names all the way around the Primal/Dual tableau
+    # formerly known as set_generic_variables_names_from_dimensions()
     my ( @x, @y, @v, @u );
-    for my $i ( 0 .. $self->{_number_of_rows} - 1 ) {
+    for my $i ( 0 .. $self->number_of_rows - 1 ) {
         my $tmp_num = $i + 1;
         my $y       = 'y' . $tmp_num;
         $self->{_y_variables}->[$i]->{'generic'} = $y;
         my $v = 'v' . $tmp_num;
         $self->{_v_variables}->[$i]->{'generic'} = $v;
     }
-    for my $j ( 0 .. $self->{_number_of_columns} - 1 ) {
+    for my $j ( 0 .. $self->number_of_columns - 1 ) {
         my $tmp_num = $j + 1;
         my $x       = 'x' . $tmp_num;
         $self->{_x_variables}->[$j]->{'generic'} = $x;
@@ -224,7 +201,7 @@ sub min_index {
 =head2 exchange_pivot_variables
 
 Exchange the variables when the a pivot is done.  The method pivot does the
-algrebra while this method does the variable swapping.
+algrebra while this method does the variable swapping (and thus tracking).
 
 =cut
 
@@ -247,27 +224,8 @@ sub exchange_pivot_variables {
     $self->{_u_variables}->[$pivot_column_number] = $increasing_dual_variable;
 }
 
-=head2 set_number_of_rows_and_columns
-
-Given a tableau (matrix), determine its size.
-
-=cut
 
 
-sub set_number_of_rows_and_columns {
-    my $self = shift;
-
-    my @rows           = @{ $self->{_tableau} };
-    my $number_of_rows = @rows;
-    $number_of_rows -= 1;
-    $self->{_number_of_rows} = $number_of_rows;
-
-    my @columns           = @{ $self->{_tableau}->[0] };
-    my $number_of_columns = @columns;
-    $number_of_columns -= 1;
-    $self->{_number_of_columns} = $number_of_columns;
-
-}
 
 =head2 get_row_and_column_numbers 
 
@@ -277,15 +235,14 @@ Get the dimensions of the tableau.
 
 sub get_row_and_column_numbers {
     my $self = shift;
-    return $self->{_number_of_rows}, $self->{_number_of_columns};
+    return $self->number_of_rows, $self->number_of_columns;
 }
 
 =head2 determine_bland_pivot_row_and_column_numbers
 
-Higher level functions that uses other to return the (bland) pivot point.
+Higher level function that uses others to return the (bland) pivot point.
 
 =cut
-
 
 sub determine_bland_pivot_row_and_column_numbers {
     my $self = shift;
@@ -367,6 +324,20 @@ Rational
 PDL
 
 =back
+
+=head1 Variables
+
+We have implicit variable names: x1, x2 ... , y1, y2, ... , u1, u2 ... , v1, v2 ...
+
+Our variables are represented by:
+
+    x, y, u, and v 
+    
+as found in Nering and Tuckers' book. 
+
+x and y are for the primal LP while u and v belong to the dual LP.
+
+These variable names are set during BUILD of the tableau object.
 
 =head1 Limitations
 
