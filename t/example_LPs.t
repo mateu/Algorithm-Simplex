@@ -77,7 +77,7 @@ for my $test ( keys %{$tests} ) {
     $final_tableau_object = solve_LP( $model, $initial_tableau );
     ok(
         are_matrices_equal_within_EPSILON(
-            $final_tableau_object->{_tableau},
+            $final_tableau_object->tableau,
             $optimal_tableau
         ),
         $full_test_name
@@ -89,7 +89,7 @@ for my $test ( keys %{$tests} ) {
     $optimal_tableau_piddle = pdl $optimal_tableau;
     ok(
         piddles_are_equal(
-            $optimal_tableau_piddle, $final_tableau_object->{_tableau}
+            $optimal_tableau_piddle, $final_tableau_object->tableau
         ),
         $full_test_name
     );
@@ -123,12 +123,12 @@ sub solve_LP {
     $tableau = pdl $tableau if ( $model eq 'piddle' );
 
     my $tableau_object =
-        $model eq 'float'    ? Algorithm::Simplex::Float->new($tableau)
-      : $model eq 'piddle'   ? Algorithm::Simplex::PDL->new($tableau)
-      : $model eq 'rational' ? Algorithm::Simplex::Rational->new($tableau)
+        $model eq 'float'    ? Algorithm::Simplex::Float->new(tableau => $tableau)
+      : $model eq 'piddle'   ? Algorithm::Simplex::PDL->new(tableau => $tableau)
+      : $model eq 'rational' ? Algorithm::Simplex::Rational->new(tableau => $tableau)
       :   die "The model type: $model could not be found.";
-    $tableau_object->set_number_of_rows_and_columns;
-    $tableau_object->set_generic_variable_names_from_dimensions;
+#    $tableau_object->set_number_of_rows_and_columns;
+#    $tableau_object->set_generic_variable_names_from_dimensions;
 
     # Extra step for rationals (fracts)
     $tableau_object
@@ -136,7 +136,7 @@ sub solve_LP {
       if ( $model eq 'rational' );
 
     my $counter = 1;
-    until ( $tableau_object->tableau_is_optimal ) {
+    until ( $tableau_object->is_optimal ) {
         my ( $pivot_row_number, $pivot_column_number ) =
           $tableau_object->determine_bland_pivot_row_and_column_numbers;
         $tableau_object->pivot( $pivot_row_number, $pivot_column_number );
@@ -183,9 +183,9 @@ sub float_matrix_from_fraction_tableau {
     my $fraction_tableau = shift;
 
     my $float_matrix;
-    for my $i ( 0 .. $fraction_tableau->{_number_of_rows} ) {
-        for my $j ( 0 .. $fraction_tableau->{_number_of_columns} ) {
-            my $fraction_object = $fraction_tableau->{_tableau}->[$i]->[$j];
+    for my $i ( 0 .. $fraction_tableau->number_of_rows ) {
+        for my $j ( 0 .. $fraction_tableau->number_of_columns ) {
+            my $fraction_object = $fraction_tableau->tableau->[$i]->[$j];
             my $float = $fraction_object->{n} / $fraction_object->{d};
             $float_matrix->[$i]->[$j] = $float;
         }

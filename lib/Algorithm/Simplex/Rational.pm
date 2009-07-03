@@ -1,8 +1,8 @@
 package Algorithm::Simplex::Rational;
-use strict;
-use warnings;
-use base 'Algorithm::Simplex';
+use Moose;
+extends 'Algorithm::Simplex';
 use Math::Cephes::Fraction qw(:fract);
+
 
 my $one     = fract( 1, 1 );
 my $neg_one = fract( 1, -1 );
@@ -29,28 +29,28 @@ sub pivot {
     # Do tucker algebra on pivot row
     my $scale =
       $one->rdiv(
-        $self->{_tableau}->[$pivot_row_number]->[$pivot_column_number] );
-    for my $j ( 0 .. $self->{_number_of_columns} ) {
-        $self->{_tableau}->[$pivot_row_number]->[$j] =
-          $self->{_tableau}->[$pivot_row_number]->[$j]->rmul($scale);
+        $self->tableau->[$pivot_row_number]->[$pivot_column_number] );
+    for my $j ( 0 .. $self->number_of_columns ) {
+        $self->tableau->[$pivot_row_number]->[$j] =
+          $self->tableau->[$pivot_row_number]->[$j]->rmul($scale);
     }
-    $self->{_tableau}->[$pivot_row_number]->[$pivot_column_number] = $scale;
+    $self->tableau->[$pivot_row_number]->[$pivot_column_number] = $scale;
 
     # Do tucker algebra elsewhere
-    for my $i ( 0 .. $self->{_number_of_rows} ) {
+    for my $i ( 0 .. $self->number_of_rows ) {
         if ( $i != $pivot_row_number ) {
 
             my $neg_a_ic =
-              $self->{_tableau}->[$i]->[$pivot_column_number]->rmul($neg_one);
-            for my $j ( 0 .. $self->{_number_of_columns} ) {
-                $self->{_tableau}->[$i]->[$j] =
-                  $self->{_tableau}->[$i]->[$j]->radd(
+              $self->tableau->[$i]->[$pivot_column_number]->rmul($neg_one);
+            for my $j ( 0 .. $self->number_of_columns ) {
+                $self->tableau->[$i]->[$j] =
+                  $self->tableau->[$i]->[$j]->radd(
                     $neg_a_ic->rmul(
-                        $self->{_tableau}->[$pivot_row_number]->[$j]
+                        $self->tableau->[$pivot_row_number]->[$j]
                     )
                   );
             }
-            $self->{_tableau}->[$i]->[$pivot_column_number] =
+            $self->tableau->[$i]->[$pivot_column_number] =
               $neg_a_ic->rmul($scale);
         }
     }
@@ -60,9 +60,9 @@ sub determine_simplex_pivot_columns {
     my $self = shift;
 
     my @simplex_pivot_column_numbers;
-    for my $col_num ( 0 .. $self->{_number_of_columns} - 1 ) {
+    for my $col_num ( 0 .. $self->number_of_columns - 1 ) {
         my $bottom_row_fraction =
-          $self->{_tableau}->[ $self->{_number_of_rows} ]->[$col_num];
+          $self->tableau->[ $self->number_of_rows ]->[$col_num];
         my $bottom_row_numeric =
           $bottom_row_fraction->{n} / $bottom_row_fraction->{d};
         if ( $bottom_row_numeric > 0 ) {
@@ -83,9 +83,9 @@ sub determine_positive_ratios {
     my @positive_ratio_row_numbers;
 
     #print "Column: $possible_pivot_column\n";
-    for my $row_num ( 0 .. $self->{_number_of_rows} - 1 ) {
+    for my $row_num ( 0 .. $self->number_of_rows - 1 ) {
         my $bottom_row_fraction =
-          $self->{_tableau}->[$row_num]->[$pivot_column_number];
+          $self->tableau->[$row_num]->[$pivot_column_number];
         my $bottom_row_numeric =
           $bottom_row_fraction->{n} / $bottom_row_fraction->{d};
 
@@ -93,15 +93,15 @@ sub determine_positive_ratios {
             push(
                 @positive_ratios,
                 (
-                    $self->{_tableau}->[$row_num]
-                      ->[ $self->{_number_of_columns} ]->{n} *
-                      $self->{_tableau}->[$row_num]->[$pivot_column_number]
+                    $self->tableau->[$row_num]
+                      ->[ $self->number_of_columns ]->{n} *
+                      $self->tableau->[$row_num]->[$pivot_column_number]
                       ->{d}
                   ) / (
-                    $self->{_tableau}->[$row_num]->[$pivot_column_number]
+                    $self->tableau->[$row_num]->[$pivot_column_number]
                       ->{n} *
-                      $self->{_tableau}->[$row_num]
-                      ->[ $self->{_number_of_columns} ]->{d}
+                      $self->tableau->[$row_num]
+                      ->[ $self->number_of_columns ]->{d}
                   )
             );
 
@@ -111,7 +111,7 @@ sub determine_positive_ratios {
     }
     return ( \@positive_ratios, \@positive_ratio_row_numbers );
 }
-sub tableau_is_optimal {
+sub is_optimal {
     my $self = shift;
 
     # check basement row for having non-positive entries which
@@ -119,8 +119,8 @@ sub tableau_is_optimal {
     my $optimal_flag = 1;
 
     # if a positve entry exists in the basement row we don't have optimality
-    for my $j ( 0 .. $self->{_number_of_columns} - 1 ) {
-        my $basement_row_fraction = $self->{_tableau}->[ $self->{_number_of_rows} ]->[$j];
+    for my $j ( 0 .. $self->number_of_columns - 1 ) {
+        my $basement_row_fraction = $self->tableau->[ $self->number_of_rows ]->[$j];
         my $basement_row_numeric = $basement_row_fraction->{n} / $basement_row_fraction->{d};
         if ( $basement_row_numeric > 0 ) {
             $optimal_flag = 0;
@@ -134,16 +134,16 @@ sub convert_natural_number_tableau_to_fractional_object_tableau {
     my $self = shift;
 
 # Make each integer and rational entry a fractional object for rational arthimetic
-    for my $i ( 0 .. $self->{_number_of_rows} ) {
-        for my $j ( 0 .. $self->{_number_of_columns} ) {
+    for my $i ( 0 .. $self->number_of_rows ) {
+        for my $j ( 0 .. $self->number_of_columns ) {
 
             # Check for existing rationals indicated with "/"
-            if ( $self->{_tableau}->[$i]->[$j] =~ m{(\-?\d+)\/(\-?\d+)} ) {
-                $self->{_tableau}->[$i]->[$j] = fract( $1, $2 );
+            if ( $self->tableau->[$i]->[$j] =~ m{(\-?\d+)\/(\-?\d+)} ) {
+                $self->tableau->[$i]->[$j] = fract( $1, $2 );
             }
             else {
-                $self->{_tableau}->[$i]->[$j] =
-                  fract( $self->{_tableau}->[$i]->[$j], 1 );
+                $self->tableau->[$i]->[$j] =
+                  fract( $self->tableau->[$i]->[$j], 1 );
             }
         }
     }

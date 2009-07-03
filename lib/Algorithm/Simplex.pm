@@ -1,5 +1,6 @@
 package Algorithm::Simplex;
 use Moose;
+use Data::Dumper;
 
 our $VERSION = '0.39';
 
@@ -10,13 +11,17 @@ has tableau => (
 );
 
 has number_of_rows => (
-    is  => 'rw',
-    isa => 'Int',
+    is         => 'ro',
+    isa        => 'Int',
+    init_arg   => undef,
+    lazy_build => 1,
 );
 
 has number_of_columns => (
-    is  => 'rw',
-    isa => 'Int',
+    is         => 'ro',
+    isa        => 'Int',
+    init_arg   => undef,
+    lazy_build => 1,
 );
 
 has EPSILON => (
@@ -29,6 +34,27 @@ has MAXIMUM_PIVOTS => (
     isa     => 'Int',
     is      => 'rw',
     default => 200,
+);
+
+has x_variables => (
+    isa        => 'ArrayRef[HashRef]',
+    is         => 'rw',
+    lazy_build => 1,
+);
+has 'y_variables' => (
+    isa        => 'ArrayRef[HashRef]',
+    is         => 'rw',
+    lazy_build => 1,
+);
+has u_variables => (
+    isa        => 'ArrayRef[HashRef]',
+    is         => 'rw',
+    lazy_build => 1,
+);
+has v_variables => (
+    isa        => 'ArrayRef[HashRef]',
+    is         => 'rw',
+    lazy_build => 1,
 );
 
 =head1 Name
@@ -54,40 +80,78 @@ study the I<solve_LP> subroutine.
 
 =head1 Methods
 
+=head2 _build_number_of_rows 
 
-
-
-=head2 BUILD
-
-Set the dimensions and variable names of the tiven tableau.
+set the number of rows
 
 =cut
 
-sub BUILD {
+sub _build_number_of_rows {
     my $self = shift;
-    
-    # Set dimensions of A matrix from Ax <= y
-    # formerly known as set_row_and_column_numbers()
-    $self->number_of_rows( scalar @{ $self->tableau } - 1 );
-    $self->number_of_columns( scalar @{ $self->tableau->[0] } - 1 );
 
-    # Given variables names all the way around the Primal/Dual tableau
-    # formerly known as set_generic_variables_names_from_dimensions()
-    my ( @x, @y, @v, @u );
-    for my $i ( 0 .. $self->number_of_rows - 1 ) {
-        my $tmp_num = $i + 1;
-        my $y       = 'y' . $tmp_num;
-        $self->{_y_variables}->[$i]->{'generic'} = $y;
-        my $v = 'v' . $tmp_num;
-        $self->{_v_variables}->[$i]->{'generic'} = $v;
-    }
+    return scalar @{ $self->tableau } - 1;
+}
+
+=head2 _build_number_of_columns 
+
+set the number of columns given the tableau matrix
+
+=cut
+
+sub _build_number_of_columns {
+    my $self = shift;
+
+    return scalar @{ $self->tableau->[0] } - 1;
+}
+
+=head2 _build_x_variables
+
+Set x variable names for the given tableau.
+
+=cut
+
+sub _build_x_variables {
+    my $self = shift;
+
+    my $x_vars;
     for my $j ( 0 .. $self->number_of_columns - 1 ) {
-        my $tmp_num = $j + 1;
-        my $x       = 'x' . $tmp_num;
-        $self->{_x_variables}->[$j]->{'generic'} = $x;
-        my $u = 'u' . $tmp_num;
-        $self->{_u_variables}->[$j]->{'generic'} = $u;
+        my $x_index = $j + 1;
+        $x_vars->[$j]->{'generic'} = 'x' .$x_index;
     }
+    return $x_vars;
+}
+
+sub _build_y_variables {
+    my $self = shift;
+
+    my $y_vars;
+    for my $i ( 0 .. $self->number_of_rows - 1 ) {
+        my $y_index = $i + 1;
+        $y_vars->[$i]->{'generic'} = 'y' . $y_index;
+    }
+    return $y_vars;
+}
+
+sub _build_u_variables {
+    my $self = shift;
+
+    my $u_vars;
+    for my $j ( 0 .. $self->number_of_columns - 1 ) {
+                my $u_index = $j + 1;
+        $u_vars->[$j]->{'generic'} = 'u' . $u_index;
+    }
+    return $u_vars;
+}
+
+sub _build_v_variables {
+    my $self = shift;
+
+    my $v_vars;
+    for my $i ( 0 .. $self->number_of_rows - 1 ) {
+        my $v_index = $i + 1;
+        $v_vars->[$i]->{'generic'} = 'v' . $v_index;
+    }
+    return $v_vars;
 }
 
 =head2 get_bland_number_for
@@ -100,9 +164,10 @@ from the generic variable name.
 sub get_bland_number_for {
     my $self          = shift;
     my $variable_type = shift;
-    my $variables     = '_' . $variable_type . '_variables';
+    my $variables     = $variable_type . '_variables';
     my $index         = shift;
-    my $generic_name  = $self->{$variables}->[$index]->{'generic'};
+    my $generic_name  = $self->$variables->[$index]->{'generic'};
+
     $generic_name =~ m{(.)(\d+)};
     my $var = $1;
     my $num = $2;
@@ -212,20 +277,16 @@ sub exchange_pivot_variables {
 
     # exchange variables based on $pivot_column_number and $pivot_row_number
     my $increasing_primal_variable =
-      $self->{_x_variables}->[$pivot_column_number];
-    my $zeroeing_primal_variable = $self->{_y_variables}->[$pivot_row_number];
-    $self->{_x_variables}->[$pivot_column_number] = $zeroeing_primal_variable;
-    $self->{_y_variables}->[$pivot_row_number] = $increasing_primal_variable;
+      $self->x_variables->[$pivot_column_number];
+    my $zeroeing_primal_variable = $self->y_variables->[$pivot_row_number];
+    $self->x_variables->[$pivot_column_number] = $zeroeing_primal_variable;
+    $self->y_variables->[$pivot_row_number]    = $increasing_primal_variable;
 
-    my $increasing_dual_variable = $self->{_v_variables}->[$pivot_row_number];
-    my $zeroeing_dual_variable =
-      $self->{_u_variables}->[$pivot_column_number];
-    $self->{_v_variables}->[$pivot_row_number]    = $zeroeing_dual_variable;
-    $self->{_u_variables}->[$pivot_column_number] = $increasing_dual_variable;
+    my $increasing_dual_variable = $self->v_variables->[$pivot_row_number];
+    my $zeroeing_dual_variable   = $self->u_variables->[$pivot_column_number];
+    $self->v_variables->[$pivot_row_number]    = $zeroeing_dual_variable;
+    $self->u_variables->[$pivot_column_number] = $increasing_dual_variable;
 }
-
-
-
 
 =head2 get_row_and_column_numbers 
 
@@ -247,24 +308,15 @@ Higher level function that uses others to return the (bland) pivot point.
 sub determine_bland_pivot_row_and_column_numbers {
     my $self = shift;
 
-    #return "you";
     my @simplex_pivot_columns = $self->determine_simplex_pivot_columns;
-    my $tmp_out               = "pivot column: " . $simplex_pivot_columns[0];
-
-    #return $tmp_out;
     my $pivot_column_number =
       $self->determine_bland_pivot_column_number(@simplex_pivot_columns);
-
-    #return "pivot column number: $pivot_column_number";
     my ( $positive_ratios, $positive_ratio_row_numbers ) =
       $self->determine_positive_ratios($pivot_column_number);
-
-    #return "postive_ratio: $positive_ratios->[0]";
     my $pivot_row_number =
       $self->determine_bland_pivot_row_number( $positive_ratios,
         $positive_ratio_row_numbers );
 
-    #return "pivot row: $pivot_row_number";
     return ( $pivot_row_number, $pivot_column_number );
 }
 

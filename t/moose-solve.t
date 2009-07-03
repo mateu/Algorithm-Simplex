@@ -17,7 +17,9 @@ $LP = {
 
 my $final_tableau_object =
   solve_LP( 'float', $LP->{'Baumol Advertising'}->{'initial_tableau'} );
-print Dumper $final_tableau_object->tableau;  
+
+print "Finished.[n";
+#print Dumper $final_tableau_object->tableau;  
 
 
 sub solve_LP {
@@ -28,12 +30,9 @@ sub solve_LP {
       $model eq 'float'
       ? Algorithm::Simplex::Float->new(tableau => $tableau)
       : die "The model type: $model could not be found.";
-    #$tableau_object->set_number_of_rows_and_columns;
-    #$tableau_object->set_generic_variable_names_from_dimensions;
-
 
     my $counter = 1;
-    until ( $tableau_object->is_tableau_optimal ) {
+    until ( $tableau_object->is_optimal ) {
         my ( $pivot_row_number, $pivot_column_number ) =
           $tableau_object->determine_bland_pivot_row_and_column_numbers;
         $tableau_object->pivot( $pivot_row_number, $pivot_column_number );
@@ -44,5 +43,6 @@ sub solve_LP {
 "HALT: Exceeded the maximum number of pivots allowed: ". $tableau_object->MAXIMUM_PIVOTS
           if ( $counter > $tableau_object->MAXIMUM_PIVOTS );
     }
+    
     return $tableau_object;
 }

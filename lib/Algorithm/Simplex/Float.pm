@@ -57,7 +57,7 @@ This is how we decide when to stop the algorithm.
 
 =cut
 
-sub is_tableau_optimal {
+sub is_optimal {
     my $self = shift;
 
     # check basement row for having non-positive entries which would => optimal 
