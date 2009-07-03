@@ -1,8 +1,8 @@
 package Algorithm::Simplex::PDL;
-
 use Moose;
-use PDL;
+use namespace::autoclean;
 extends 'Algorithm::Simplex';
+use PDL ();
 
 =head1 Name
 
@@ -37,7 +37,7 @@ The same holds for number of columns.
 
 sub _build_number_of_rows {
     my $self = shift;
-    my ( $number_of_columns, $number_of_rows ) = dims( $self->tableau );
+    my ( $number_of_columns, $number_of_rows ) = PDL::dims( $self->tableau );
     return $number_of_rows - 1;
 }
 
@@ -49,11 +49,11 @@ set the number of columns given the tableau matrix
 
 sub _build_number_of_columns {
     my $self = shift;
-    my ( $number_of_columns, $number_of_rows ) = dims( $self->tableau );
+    my ( $number_of_columns, $number_of_rows ) = PDL::dims( $self->tableau );
     return $number_of_columns - 1;
 }
 
-####---- subs below
+no Moose;
 
 sub pivot {
     my $self                = shift;
@@ -61,7 +61,7 @@ sub pivot {
     my $pivot_column_number = shift;
 
     my $pdl_A   = $self->tableau;
-    my $neg_one = zeroes 1;
+    my $neg_one = PDL::zeroes(1);
     $neg_one -= 1;
 
     my $scale_copy =
@@ -94,10 +94,10 @@ sub is_optimal {
     my $T_pdl = $self->tableau;
 
     # Look at basement row to see if no positive entries exists.
-    my $n_cols_A     = $self->number_of_columns - 1;
+    my $n_cols_A       = $self->number_of_columns - 1;
     my $number_of_rows = $self->number_of_rows;
-    my $basement_row = $T_pdl->slice("0:$n_cols_A,($number_of_rows)");
-    my @basement_row = $basement_row->list;
+    my $basement_row   = $T_pdl->slice("0:$n_cols_A,($number_of_rows)");
+    my @basement_row   = $basement_row->list;
     my @positive_profit_column_numbers;
     my $optimal_flag = 1;
     foreach my $profit_coefficient (@basement_row) {
@@ -118,12 +118,13 @@ sub determine_simplex_pivot_columns {
     # Look at basement row to see where positive entries exists.
     # Run optimality test first to insure at least one positve profit exists.
     my @simplex_pivot_column_numbers;
-    my $n_cols_A      = $self->number_of_columns - 1;
+    my $n_cols_A       = $self->number_of_columns - 1;
     my $number_of_rows = $self->number_of_rows;
-    my $basement_row  = $T_pdl->slice("0:$n_cols_A,($number_of_rows)");
-    my @basement_row  = $basement_row->list;
-    my $column_number = 0;
+    my $basement_row   = $T_pdl->slice("0:$n_cols_A,($number_of_rows)");
+    my @basement_row   = $basement_row->list;
+    my $column_number  = 0;
     foreach my $profit_coefficient (@basement_row) {
+
         if ( $profit_coefficient > 0 ) {
             push @simplex_pivot_column_numbers, $column_number;
         }
@@ -140,15 +141,14 @@ sub determine_positive_ratios {
     my $self                = shift;
     my $pivot_column_number = shift;
 
-    my $pdl      = $self->tableau;
-    my $n_rows_A = $self->number_of_rows - 1;
+    my $pdl               = $self->tableau;
+    my $n_rows_A          = $self->number_of_rows - 1;
     my $number_of_columns = $self->number_of_columns;
-    my $pivot_column = $pdl->slice("($pivot_column_number),0:$n_rows_A");
-    my @pivot_column = $pivot_column->list;
-    my $constant_column =
-      $pdl->slice("($number_of_columns),0:$n_rows_A");
-    my @constant_column = $constant_column->list;
-    my $row_number      = 0;
+    my $pivot_column      = $pdl->slice("($pivot_column_number),0:$n_rows_A");
+    my @pivot_column      = $pivot_column->list;
+    my $constant_column   = $pdl->slice("($number_of_columns),0:$n_rows_A");
+    my @constant_column   = $constant_column->list;
+    my $row_number        = 0;
     my @positive_ratio_row_numbers;
     my @positive_ratios;
 
@@ -176,5 +176,7 @@ sub set_number_of_rows_and_columns {
       ( $number_of_columns - 1, $number_of_rows - 1 );
 
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;

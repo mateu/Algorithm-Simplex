@@ -11,10 +11,10 @@ version_from 'lib/Algorithm/Simplex.pm';
 
 
 requires(
-'Class::MethodMaker'            => 0,
+'Moose'                         => 0,
+'namespace'                     => 0,
 'Math::Cephes::Fraction'        => 0,
 'PDL'                           => 0,
-'Readonly'                      => 0,
 );
 
 

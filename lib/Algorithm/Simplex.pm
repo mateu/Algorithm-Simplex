@@ -1,5 +1,6 @@
 package Algorithm::Simplex;
 use Moose;
+use namespace::autoclean;
 use Data::Dumper;
 
 our $VERSION = '0.39';
@@ -27,7 +28,7 @@ has number_of_columns => (
 has EPSILON => (
     isa     => 'Num',
     is      => 'ro',
-    default => 1e-14,
+    default => 1e-13,
 );
 
 has MAXIMUM_PIVOTS => (
@@ -153,6 +154,8 @@ sub _build_v_variables {
     }
     return $v_vars;
 }
+
+no Moose;
 
 =head2 get_bland_number_for
 
@@ -320,6 +323,8 @@ sub determine_bland_pivot_row_and_column_numbers {
     return ( $pivot_row_number, $pivot_column_number );
 }
 
+__PACKAGE__->meta->make_immutable;
+
 1;
 
 __END__
@@ -329,6 +334,9 @@ __END__
 Mateu X. Hunter C<hunter@missoula.org>
 
 Strong design influence by George McRae at the University of Montana.
+
+#moose for solid assistance in the refactor: particularly _build_* approach 
+and PDL + Moose namespace management, 'inner'.
 
 =head1 License
 

@@ -1,5 +1,6 @@
 package Algorithm::Simplex::Rational;
 use Moose;
+use namespace::autoclean;
 extends 'Algorithm::Simplex';
 use Math::Cephes::Fraction qw(:fract);
 
@@ -148,5 +149,7 @@ sub convert_natural_number_tableau_to_fractional_object_tableau {
         }
     }
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;

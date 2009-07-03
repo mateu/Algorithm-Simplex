@@ -18,7 +18,7 @@ $LP = {
 my $final_tableau_object =
   solve_LP( 'float', $LP->{'Baumol Advertising'}->{'initial_tableau'} );
 
-print "Finished.[n";
+print "Finished.\n";
 #print Dumper $final_tableau_object->tableau;  
 
 

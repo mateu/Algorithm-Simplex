@@ -1,5 +1,6 @@
 package Algorithm::Simplex::Float;
 use Moose;
+use namespace::autoclean;
 extends 'Algorithm::Simplex';
 
 my $one      =  1;
@@ -137,5 +138,6 @@ sub determine_positive_ratios {
     return (\@positive_ratios, \@positive_ratio_row_numbers);
 }
 
+__PACKAGE__->meta->make_immutable;
 
 1;
