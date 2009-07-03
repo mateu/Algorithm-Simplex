@@ -9,7 +9,7 @@ use Data::Dumper;
 my $tableau_shell = Algorithm::Simplex->new( tableau => [ [] ] );
 
 my $tests = {
-    'Baumol Advertising' => {
+    'Baumol: Advertising' => {
         initial_tableau =>
           [ [ 8, 3, 4, 40 ], [ 40, 10, 10, 200 ], [ 160, 60, 80, 0 ], ],
         optimal_tableau => [
@@ -18,7 +18,7 @@ my $tests = {
             [ -20,   0,     0,     -800 ],
         ],
     },
-    'Bland Anti-Cycling' => {
+    'Bland: Anti-Cycling' => {
         initial_tableau => [
             [ 1 / 4, -8,  -1,     9,  0 ],
             [ 1 / 2, -12, -1 / 2, 3,  0 ],
@@ -87,7 +87,7 @@ my $tests = {
             [ -2 / 5,     0,        -3 / 5,   -249 / 5 ],
         ],
     },
-    'Hillier and Lieberman - Wyndor Glass' => {
+    'Hillier and Lieberman: Wyndor Glass Company' => {
         initial_tableau =>
           [ [ 0, 1, 4 ], [ 2, 0, 12 ], [ 2, 3, 18 ], [ 5, 3, 0 ], ],
         optimal_tableau => [

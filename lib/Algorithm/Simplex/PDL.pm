@@ -2,7 +2,7 @@ package Algorithm::Simplex::PDL;
 use Moose;
 use namespace::autoclean;
 extends 'Algorithm::Simplex';
-use PDL ();
+use PDL::Lite;
 
 =head1 Name
 
@@ -61,7 +61,7 @@ sub pivot {
     my $pivot_column_number = shift;
 
     my $pdl_A   = $self->tableau;
-    my $neg_one = PDL::zeroes(1);
+    my $neg_one = PDL->zeroes(1);
     $neg_one -= 1;
 
     my $scale_copy =
@@ -167,14 +167,6 @@ sub get_pdl {
     my $pdl    = $self->tableau;
     my $output = "$pdl";
     return $output;
-}
-
-sub set_number_of_rows_and_columns {
-    my $self = shift;
-    my ( $number_of_columns, $number_of_rows ) = $self->tableau->dims;
-    ( $self->number_of_columns, $self->number_of_rows ) =
-      ( $number_of_columns - 1, $number_of_rows - 1 );
-
 }
 
 __PACKAGE__->meta->make_immutable;

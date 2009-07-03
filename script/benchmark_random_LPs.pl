@@ -1,7 +1,11 @@
 #!/usr/bin/env perl
 use Benchmark;
-use PDL;
-use Algorithm::Simplex;
+use PDL::Lite;
+use Getopt::Long;
+use Algorithm::Simplex::Float;
+use Algorithm::Simplex::PDL;
+use Algorithm::Simplex::Rational;
+use Data::Dumper;
 
 =head1 Name
 
@@ -12,12 +16,6 @@ benchmark_random_LPs.pl - Benchmark the three models w/ random Linear Programs
 perl benchmark_random_LPs.pl --rows 50 --columns 50 -n 50
 
 =cut
-
-use Getopt::Long;
-use Algorithm::Simplex::Float;
-use Algorithm::Simplex::PDL;
-use Algorithm::Simplex::Rational;
-use Data::Dumper;
 
 my $rows          = 20;
 my $columns       = 20;
@@ -31,6 +29,8 @@ GetOptions(
 
 srand;
 my $matrix = random_float_matrix( $rows, $columns, 1 );
+# Get shell tableau object for access to EPSILON and MAXIMUM_PIVOTS
+my $tableau_shell = Algorithm::Simplex->new( tableau => [ [] ] );
 
 timethese(
     $number_of_LPs,
@@ -41,44 +41,51 @@ timethese(
     }
 );
 
-=cut head2 solve_LP
+=head2 solve_LP
 
-A function to step through a set of feasible solutions (tableaus) until
-we reach an optimal solution or until we exceed a pre-defined number of steps.
+Solver subroutine for a given model and initial tableau.
 
 =cut
 
 sub solve_LP {
     my $model   = shift;
+    # euclid overflow error occurs if we don't copy matrix, wish i knew why.
     my $tableau = matrix_copy($matrix);
-
-    # extra step for piddles.
+    
+    # Extra step for piddles.
     $tableau = pdl $tableau if ( $model eq 'piddle' );
 
     my $tableau_object =
-        $model eq 'float'    ? Algorithm::Simplex::Float->new($tableau)
-      : $model eq 'piddle'   ? Algorithm::Simplex::PDL->new($tableau)
-      : $model eq 'rational' ? Algorithm::Simplex::Rational->new($tableau)
-      :   die "The model type: $model could not be found.";
-    $tableau_object->set_number_of_rows_and_columns;
-    $tableau_object->set_generic_variable_names_from_dimensions;
+      $model eq 'float'
+      ? Algorithm::Simplex::Float->new( tableau => $tableau )
+      : $model eq 'piddle'
+      ? Algorithm::Simplex::PDL->new( tableau => $tableau )
+      : $model eq 'rational'
+      ? Algorithm::Simplex::Rational->new( tableau => $tableau )
+      : die "The model type: $model could not be found.";
 
-    # extra step for rationals (fracts)
+    # Extra step for rationals (fracts)
     $tableau_object
       ->convert_natural_number_tableau_to_fractional_object_tableau
       if ( $model eq 'rational' );
 
     my $counter = 1;
-    until ( $tableau_object->tableau_is_optimal ) {
+    until ( $tableau_object->is_optimal ) {
         my ( $pivot_row_number, $pivot_column_number ) =
           $tableau_object->determine_bland_pivot_row_and_column_numbers;
         $tableau_object->pivot( $pivot_row_number, $pivot_column_number );
         $tableau_object->exchange_pivot_variables( $pivot_row_number,
             $pivot_column_number );
         $counter++;
-        die "Too many loops" if ( $counter > 200 );
-    }
 
+        # Too many pivots?
+        if ( $counter > $tableau_shell->MAXIMUM_PIVOTS ) {
+            warn "HALT: Exceeded the maximum number of pivots allowed: "
+              . $tableau_shell->MAXIMUM_PIVOTS . "\n";
+            return 0;
+        }
+    }
+    return $tableau_object;
 }
 
 sub random_float_matrix {

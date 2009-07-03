@@ -155,8 +155,6 @@ sub _build_v_variables {
     return $v_vars;
 }
 
-no Moose;
-
 =head2 get_bland_number_for
 
 Given a column number (which represents a u variable) build the bland number 
