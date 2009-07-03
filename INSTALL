@@ -6,7 +6,7 @@ Install Algorithm::Simplex either using the cpan shell like this:
       
         http://search.cpan.org/dist/Algorithm-Simplex/
         
-    cd to the extracted directory Algorithm-Simplex/ then run:
+    cd to the extracted directory Algorithm-Simplex-x.xx/ then run:
     
     * perl Makefile.PL
     * make test
