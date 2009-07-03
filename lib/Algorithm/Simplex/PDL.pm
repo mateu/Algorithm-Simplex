@@ -1,5 +1,6 @@
 package Algorithm::Simplex::PDL;
 use strict;
+use warnings;
 use base 'Algorithm::Simplex';
 use PDL;
 
