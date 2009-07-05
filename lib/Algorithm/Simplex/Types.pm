@@ -4,7 +4,13 @@ use PDL::Lite;
 use Math::Cephes::Fraction qw(:fract);
 use Data::Dumper;
 
-# Want to coerce Array input into piddle.
+=head1 Name
+
+Algorithm::Simplex::Types - Types into which we coerce matrix input
+for PDL and Rational models
+
+=cut
+
 subtype 'Piddle' 
     => as 'PDL' 
     => where { $_->isa('PDL') } 
@@ -23,9 +29,11 @@ coerce 'FractMatrix'
     => from 'ArrayRef[ArrayRef[Num]]' 
     => via { &fraction_maker($_) };
 
+=head1 Methods
+
 =head2 fraction_maker
 
-Make each integer and rational entry a Math::Cephes::Fraction object.
+Make each rational entry a Math::Cephes::Fraction object.
 
 =cut
 

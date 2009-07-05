@@ -1,4 +1,5 @@
 0.37    2009 juliol 5
+        - Add current_solution() method
         - Add tests and example using solve method
         - Add Solve Role with solve method
         - Fix benchmark script broken during Moose refactor.

@@ -118,14 +118,12 @@ sub is_optimal {
 sub determine_simplex_pivot_columns {
     my $self = shift;
 
-    my $T_pdl = $self->tableau;
-
     # Look at basement row to see where positive entries exists.
     # Run optimality test first to insure at least one positve profit exists.
     my @simplex_pivot_column_numbers;
     my $n_cols_A       = $self->number_of_columns - 1;
     my $number_of_rows = $self->number_of_rows;
-    my $basement_row   = $T_pdl->slice("0:$n_cols_A,($number_of_rows)");
+    my $basement_row   = $self->tableau->slice("0:$n_cols_A,($number_of_rows)");
     my @basement_row   = $basement_row->list;
     my $column_number  = 0;
     foreach my $profit_coefficient (@basement_row) {
@@ -146,12 +144,11 @@ sub determine_positive_ratios {
     my $self                = shift;
     my $pivot_column_number = shift;
 
-    my $pdl               = $self->tableau;
     my $n_rows_A          = $self->number_of_rows - 1;
     my $number_of_columns = $self->number_of_columns;
-    my $pivot_column      = $pdl->slice("($pivot_column_number),0:$n_rows_A");
+    my $pivot_column      = $self->tableau->slice("($pivot_column_number),0:$n_rows_A");
     my @pivot_column      = $pivot_column->list;
-    my $constant_column   = $pdl->slice("($number_of_columns),0:$n_rows_A");
+    my $constant_column   = $self->tableau->slice("($number_of_columns),0:$n_rows_A");
     my @constant_column   = $constant_column->list;
     my $row_number        = 0;
     my @positive_ratio_row_numbers;
@@ -172,6 +169,36 @@ sub get_pdl {
     my $pdl    = $self->tableau;
     my $output = "$pdl";
     return $output;
+}
+
+sub current_solution {
+    my $self = shift;
+
+    # Report the Current Solution as primal dependents and dual dependents.
+    my @y = @{ $self->y_variables };
+    my @u = @{ $self->u_variables };
+
+    # Dependent Primal Variables
+    my $n_rows_A          = $self->number_of_rows - 1;
+    my $number_of_columns = $self->number_of_columns;
+    my $constant_column   = $self->tableau->slice("($number_of_columns),0:$n_rows_A");
+    my @constant_column   = $constant_column->list;
+    my %primal_solution;
+    for my $i ( 0 .. $#y ) {
+        $primal_solution{ $y[$i]->{generic} } = $constant_column[$i];
+    }
+    
+    # Dependent Dual Variables
+    my $n_cols_A       = $self->number_of_columns - 1;
+    my $number_of_rows = $self->number_of_rows;
+    my $basement_row   = $self->tableau->slice("0:$n_cols_A,($number_of_rows)");
+    my @basement_row   = $basement_row->list;
+    my %dual_solution;
+    for my $j ( 0 .. $#u ) {
+        $dual_solution{ $u[$j]->{generic} } = $basement_row[$j]*(-1);
+    }
+    
+    return (\%primal_solution, \%dual_solution);
 }
 
 __PACKAGE__->meta->make_immutable;

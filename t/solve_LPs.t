@@ -98,8 +98,11 @@ my $tests = {
         ],
     }
 };
-my ( $model, $initial_tableau, $optimal_tableau, $optimal_tableau_piddle,
-    $final_tableau_object, $final_matrix_as_float, $full_test_name );
+my (
+    $model, $initial_tableau, $optimal_tableau, $tableau_object,
+    $optimal_tableau_piddle, $final_tableau_object, $final_matrix_as_float,
+    $full_test_name
+);
 
 for my $test ( keys %{$tests} ) {
 
@@ -108,22 +111,20 @@ for my $test ( keys %{$tests} ) {
 
     $model          = 'float';
     $full_test_name = $test . ' - ' . ucfirst $model;
-    my $tableau =
+    $tableau_object =
       Algorithm::Simplex::Float->new( tableau => $initial_tableau );
-    $final_tableau_object = $tableau->solve;
+    $final_tableau_object = $tableau_object->solve;
     ok(
         are_equal_matrices(
-            $final_tableau_object->tableau,
-            $optimal_tableau
+            $final_tableau_object->tableau, $optimal_tableau
         ),
         $full_test_name
     );
 
     $model          = 'piddle';
     $full_test_name = $test . ' - ' . ucfirst $model;
-    my $tableau =
-      Algorithm::Simplex::PDL->new( tableau => $initial_tableau );
-    $final_tableau_object = $tableau->solve;
+    $tableau_object = Algorithm::Simplex::PDL->new( tableau => $initial_tableau );
+    $final_tableau_object   = $tableau_object->solve;
     $optimal_tableau_piddle = pdl $optimal_tableau;
     ok(
         are_equal_piddles(
@@ -134,17 +135,13 @@ for my $test ( keys %{$tests} ) {
 
     $model          = 'rational';
     $full_test_name = $test . ' - ' . ucfirst $model;
-    my $tableau =
+    $tableau_object =
       Algorithm::Simplex::Rational->new( tableau => $initial_tableau );
-    $final_tableau_object = $tableau->solve;
+    $final_tableau_object = $tableau_object->solve;
     $final_matrix_as_float =
       float_matrix_from_fraction_tableau($final_tableau_object);
-    ok(
-        are_equal_matrices(
-            $final_matrix_as_float, $optimal_tableau
-        ),
-        $full_test_name
-    );
+    ok( are_equal_matrices( $final_matrix_as_float, $optimal_tableau ),
+        $full_test_name );
 }
 
 =head1 Subroutines

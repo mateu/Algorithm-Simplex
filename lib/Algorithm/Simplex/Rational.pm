@@ -140,6 +140,29 @@ sub is_optimal {
     return $optimal_flag;
 }
 
+sub current_solution {
+    my $self = shift;
+
+    # Report the Current Solution as primal dependents and dual dependents.
+    my @y = @{ $self->y_variables };
+    my @u = @{ $self->u_variables };
+
+    # Dependent Primal Variables
+    my %primal_solution;
+    for my $i ( 0 .. $#y ) {
+        my $rational =  $self->tableau->[$i]->[ $self->number_of_columns ];
+        $primal_solution{ $y[$i]->{generic} } = $rational->as_string;
+    }
+
+    # Dependent Dual Variables
+    my %dual_solution;
+    for my $j ( 0 .. $#u ) {
+       my $rational = $self->tableau->[ $self->number_of_rows ]->[$j]->rmul($neg_one);
+       $dual_solution{ $u[$j]->{generic} } = $rational->as_string;
+    }
+    
+    return (\%primal_solution, \%dual_solution);
+}
 
 __PACKAGE__->meta->make_immutable;
 

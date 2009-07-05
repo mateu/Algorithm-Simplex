@@ -35,11 +35,7 @@ my $tableau_object;
 
 $tableau_object = Algorithm::Simplex::PDL->new( tableau => $initial_tableau );
 if ( my $final_tableau_object = $tableau_object->solve ) {
-    print "Found optimal solution: ";
-    print Dumper $final_tableau_object->tableau;
-    print "\n";
-    print "x variables: " . Dumper $final_tableau_object->x_variables;
-    print "\n";
+    print Dumper $final_tableau_object->current_solution;
 }
 else {
     print "Exceeding maximum number of allowed loops: "
@@ -49,11 +45,7 @@ else {
 $tableau_object =
   Algorithm::Simplex::Rational->new( tableau => $initial_tableau_2 );
 if ( my $final_tableau_object = $tableau_object->solve ) {
-    print "Found optimal solution: ";
-    print Dumper $final_tableau_object->tableau;
-    print "\n";
-    print "x variables: " . Dumper $final_tableau_object->x_variables;
-    print "\n";
+    print Dumper $final_tableau_object->current_solution;
 }
 else {
     print "Exceeding maximum number of allowed loops: "
@@ -63,11 +55,7 @@ else {
 $tableau_object =
   Algorithm::Simplex::Float->new( tableau => $initial_tableau_3 );
 if ( my $final_tableau_object = $tableau_object->solve ) {
-    print "Found optimal solution: ";
-    print Dumper $final_tableau_object->tableau;
-    print "\n";
-    print "x variables: " . Dumper $final_tableau_object->x_variables;
-    print "\n";
+    print Dumper $final_tableau_object->current_solution;
 }
 else {
     print "Exceeding maximum number of allowed loops: "
