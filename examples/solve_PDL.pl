@@ -1,7 +1,17 @@
-use Algorithm::Simplex::Float;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use PDL::Lite;
+use Algorithm::Simplex::PDL;
 use Data::Dumper;
 
-$MAXIMUM_PIVOTS = 200;
+=head1 Name
+
+solve_PDL.pl - solve a PDL LP using custom solver.
+
+=cut
+
+# Get shell tableau object for access to EPSILON and MAXIMUM_PIVOTS
+my $tableau_shell = Algorithm::Simplex->new( tableau => [ [] ] );
 
 $LP = {
     'Baumol Advertising' => {
@@ -16,20 +26,24 @@ $LP = {
 };
 
 my $final_tableau_object =
-  solve_LP( 'float', $LP->{'Baumol Advertising'}->{'initial_tableau'} );
-
+  solve_LP( 'piddle', $LP->{'Baumol Advertising'}->{'initial_tableau'} );
 print "Finished.\n";
-#print Dumper $final_tableau_object->tableau;  
 
+=head1 Subroutines
+
+=head2 solve_LP
+
+Custom made solver for PDL.
+
+=cut
 
 sub solve_LP {
     my $model   = shift;
     my $tableau = shift;
+    
+    $tableau = pdl $tableau;
 
-    my $tableau_object =
-      $model eq 'float'
-      ? Algorithm::Simplex::Float->new(tableau => $tableau)
-      : die "The model type: $model could not be found.";
+    my $tableau_object = Algorithm::Simplex::PDL->new(tableau => $tableau);
 
     my $counter = 1;
     until ( $tableau_object->is_optimal ) {
@@ -40,8 +54,8 @@ sub solve_LP {
             $pivot_column_number );
         $counter++;
         die
-"HALT: Exceeded the maximum number of pivots allowed: ". $tableau_object->MAXIMUM_PIVOTS
-          if ( $counter > $tableau_object->MAXIMUM_PIVOTS );
+"HALT: Exceeded the maximum number of pivots allowed: ". $tableau_shell->MAXIMUM_PIVOTS
+          if ( $counter > $tableau_shell->MAXIMUM_PIVOTS );
     }
     
     return $tableau_object;

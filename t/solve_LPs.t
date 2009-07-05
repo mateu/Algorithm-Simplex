@@ -106,35 +106,41 @@ for my $test ( keys %{$tests} ) {
     $initial_tableau = $tests->{$test}->{initial_tableau};
     $optimal_tableau = $tests->{$test}->{optimal_tableau};
 
-    $model                = 'float';
-    $full_test_name       = $test . ' - ' . ucfirst $model;
-    $final_tableau_object = solve_LP( $model, $initial_tableau );
+    $model          = 'float';
+    $full_test_name = $test . ' - ' . ucfirst $model;
+    my $tableau =
+      Algorithm::Simplex::Float->new( tableau => $initial_tableau );
+    $final_tableau_object = $tableau->solve;
     ok(
-        are_matrices_equal_within_EPSILON(
+        are_equal_matrices(
             $final_tableau_object->tableau,
             $optimal_tableau
         ),
         $full_test_name
     );
 
-    $model                  = 'piddle';
-    $full_test_name         = $test . ' - ' . ucfirst $model;
-    $final_tableau_object   = solve_LP( $model, $initial_tableau );
+    $model          = 'piddle';
+    $full_test_name = $test . ' - ' . ucfirst $model;
+    my $tableau =
+      Algorithm::Simplex::PDL->new( tableau => $initial_tableau );
+    $final_tableau_object = $tableau->solve;
     $optimal_tableau_piddle = pdl $optimal_tableau;
     ok(
-        piddles_are_equal(
+        are_equal_piddles(
             $optimal_tableau_piddle, $final_tableau_object->tableau
         ),
         $full_test_name
     );
 
-    $model                = 'rational';
-    $full_test_name       = $test . ' - ' . ucfirst $model;
-    $final_tableau_object = solve_LP( $model, $initial_tableau );
+    $model          = 'rational';
+    $full_test_name = $test . ' - ' . ucfirst $model;
+    my $tableau =
+      Algorithm::Simplex::Rational->new( tableau => $initial_tableau );
+    $final_tableau_object = $tableau->solve;
     $final_matrix_as_float =
       float_matrix_from_fraction_tableau($final_tableau_object);
     ok(
-        are_matrices_equal_within_EPSILON(
+        are_equal_matrices(
             $final_matrix_as_float, $optimal_tableau
         ),
         $full_test_name
@@ -143,53 +149,14 @@ for my $test ( keys %{$tests} ) {
 
 =head1 Subroutines
 
-=head2 solve_LP
+=head2 are_equal_piddles
 
-Solver subroutine for a given model and initial tableau.
+Compare two piddles for equality which is based on the difference 
+of entry being within EPSILON of zero.
 
 =cut
 
-sub solve_LP {
-    my $model   = shift;
-    my $tableau = shift;
-
-    # Extra step for piddles.
-#    $tableau = pdl $tableau if ( $model eq 'piddle' );
-
-    my $tableau_object =
-      $model eq 'float'
-      ? Algorithm::Simplex::Float->new( tableau => $tableau )
-      : $model eq 'piddle'
-      ? Algorithm::Simplex::PDL->new( tableau => $tableau )
-      : $model eq 'rational'
-      ? Algorithm::Simplex::Rational->new( tableau => $tableau )
-      : die "The model type: $model could not be found.";
-
-    # Extra step for rationals (fracts)
-#    $tableau_object
-#      ->convert_natural_number_tableau_to_fractional_object_tableau
-#      if ( $model eq 'rational' );
-
-    my $counter = 1;
-    until ( $tableau_object->is_optimal ) {
-        my ( $pivot_row_number, $pivot_column_number ) =
-          $tableau_object->determine_bland_pivot_row_and_column_numbers;
-        $tableau_object->pivot( $pivot_row_number, $pivot_column_number );
-        $tableau_object->exchange_pivot_variables( $pivot_row_number,
-            $pivot_column_number );
-        $counter++;
-
-        # Too many pivots?
-        if ( $counter > $tableau_shell->MAXIMUM_PIVOTS ) {
-            warn "HALT: Exceeded the maximum number of pivots allowed: "
-              . $tableau_shell->MAXIMUM_PIVOTS . "\n";
-            return 0;
-        }
-    }
-    return $tableau_object;
-}
-
-sub piddles_are_equal {
+sub are_equal_piddles {
     my $pdl_1 = shift;
     my $pdl_2 = shift;
 
@@ -198,11 +165,18 @@ sub piddles_are_equal {
         return 1;
     }
     else {
+        print "DIFF PDL: " . $result_pdl;
         return 0;
     }
 }
 
-sub are_matrices_equal_within_EPSILON {
+=head2 are_equal_matrices
+
+Check for entry-wise equality with EPSILON for two matrices.
+
+=cut
+
+sub are_equal_matrices {
     my $M_1 = shift;
     my $M_2 = shift;
 

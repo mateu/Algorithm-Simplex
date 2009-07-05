@@ -2,13 +2,14 @@ package Algorithm::Simplex::Float;
 use Moose;
 use namespace::autoclean;
 extends 'Algorithm::Simplex';
+with 'Algorithm::Simplex::Role::Solve';
 
 my $one      =  1;
 my $neg_one = -1;
 
 =head1 Name
 
-Algorithm::Simplex::Float - Float version of the Simplex Algorithm
+Algorithm::Simplex::Float - Float model of the Simplex Algorithm
 
 =head1 Methods
 

@@ -1,8 +1,17 @@
 package Algorithm::Simplex::Rational;
 use Moose;
+use Algorithm::Simplex::Types;
 use namespace::autoclean;
 extends 'Algorithm::Simplex';
+with 'Algorithm::Simplex::Role::Solve';
 use Math::Cephes::Fraction qw(:fract);
+
+has tableau => (
+    is       => 'rw',
+    isa      => 'FractMatrix',
+    required => 1,
+    coerce   => 1,
+);
 
 
 my $one     = fract( 1, 1 );
@@ -10,7 +19,7 @@ my $neg_one = fract( 1, -1 );
 
 =head1 Name
 
-Algorithm::Simplex::Rational - Rational version of the Simplex Algorithm
+Algorithm::Simplex::Rational - Rational model of the Simplex Algorithm
 
 =head1 Methods
 
@@ -131,24 +140,6 @@ sub is_optimal {
     return $optimal_flag;
 }
 
-sub convert_natural_number_tableau_to_fractional_object_tableau {
-    my $self = shift;
-
-# Make each integer and rational entry a fractional object for rational arthimetic
-    for my $i ( 0 .. $self->number_of_rows ) {
-        for my $j ( 0 .. $self->number_of_columns ) {
-
-            # Check for existing rationals indicated with "/"
-            if ( $self->tableau->[$i]->[$j] =~ m{(\-?\d+)\/(\-?\d+)} ) {
-                $self->tableau->[$i]->[$j] = fract( $1, $2 );
-            }
-            else {
-                $self->tableau->[$i]->[$j] =
-                  fract( $self->tableau->[$i]->[$j], 1 );
-            }
-        }
-    }
-}
 
 __PACKAGE__->meta->make_immutable;
 

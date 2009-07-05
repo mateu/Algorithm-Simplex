@@ -29,6 +29,7 @@ GetOptions(
 
 srand;
 my $matrix = random_float_matrix( $rows, $columns, 1 );
+
 # Get shell tableau object for access to EPSILON and MAXIMUM_PIVOTS
 my $tableau_shell = Algorithm::Simplex->new( tableau => [ [] ] );
 
@@ -49,11 +50,7 @@ Solver subroutine for a given model and initial tableau.
 
 sub solve_LP {
     my $model   = shift;
-    # euclid overflow error occurs if we don't copy matrix, wish i knew why.
     my $tableau = matrix_copy($matrix);
-    
-    # Extra step for piddles.
-    $tableau = pdl $tableau if ( $model eq 'piddle' );
 
     my $tableau_object =
       $model eq 'float'
@@ -63,11 +60,6 @@ sub solve_LP {
       : $model eq 'rational'
       ? Algorithm::Simplex::Rational->new( tableau => $tableau )
       : die "The model type: $model could not be found.";
-
-    # Extra step for rationals (fracts)
-    $tableau_object
-      ->convert_natural_number_tableau_to_fractional_object_tableau
-      if ( $model eq 'rational' );
 
     my $counter = 1;
     until ( $tableau_object->is_optimal ) {
@@ -102,16 +94,6 @@ sub random_float_matrix {
               $natural_numbers == 0 ? rand : int( 10 * rand );
         }
     }
-
-    return $matrix;
-}
-
-sub random_pdl_matrix {
-
-    # code to produce a random pdl matrix
-    my $rows    = shift;
-    my $columns = shift;
-    my $matrix  = random( double, $rows, $columns );
 
     return $matrix;
 }

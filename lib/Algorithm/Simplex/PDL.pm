@@ -1,12 +1,16 @@
 package Algorithm::Simplex::PDL;
 use Moose;
+use Algorithm::Simplex::Types;
 use namespace::autoclean;
 extends 'Algorithm::Simplex';
+with 'Algorithm::Simplex::Role::Solve';
 use PDL::Lite;
+
+
 
 =head1 Name
 
-Algorithm::Simplex::PDL - PDL version of the Simplex Algorithm
+Algorithm::Simplex::PDL - PDL model of the Simplex Algorithm
 
 =head1 Methods
 
@@ -21,8 +25,9 @@ adjacent node along the Simplex of feasible solutions.
 
 has tableau => (
     is       => 'rw',
-    isa      => 'PDL',
+    isa      => 'Piddle',
     required => 1,
+    coerce   => 1,
 );
 
 =head1 Methods
