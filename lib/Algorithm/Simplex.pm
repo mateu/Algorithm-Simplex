@@ -3,7 +3,7 @@ use Moose;
 use namespace::autoclean;
 use Data::Dumper;
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 
 has tableau => (
     is       => 'rw',
