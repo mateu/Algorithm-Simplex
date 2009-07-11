@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 use Benchmark;
 use PDL::Lite;
 use Getopt::Long;

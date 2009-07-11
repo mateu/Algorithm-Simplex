@@ -9,13 +9,20 @@ Algorithm::Simplex::Role::Solve - solve() method implemented as Moose role.
 
 =head1 Synposis
 
-    use Algorithm::Simplex::Float;
+    use Algorithm::Simplex::Rational;
     use Data::Dumper;
-    my $matrix =  [ [ 1, 3, 2, 10 ], [ 2, 1, 1, 8 ], [ 3, 2, 4, 0 ] ];
-    my $tableau = Algorithm::Simplex::Float->new( tableau => $matrix );
-    my $final_tableau = $tableau->solve;
-    print Dumper $final_tableau->tableau . "\n";
-    
+    my $matrix = [
+        [ 5,  2,  30],
+        [ 3,  4,  20],
+        [10,  8,   0],
+    ];
+    my $tableau_object = Algorithm::Simplex::Rational->new( tableau => $matrix );
+    $tableau_object->solve;
+    print Dumper $tableau_object->display_tableau;
+    my ($primal_solution, $dual_solution) = $tableau_object->current_solution;
+    print Dumper $primal_solution;
+    print Dumper $dual_solution;
+     
 =cut    
 
 requires 'tableau', 
@@ -43,7 +50,7 @@ sub solve {
         }
     }
 
-    return $tableau_object;
+    return 1;
 }
 
 1;

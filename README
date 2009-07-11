@@ -24,7 +24,3 @@ Hey it's C and fortran doing the arithmetic operations.
 The algorithm implementation was strongly influenced by Nering and Tucker's
 book "Linear Programs and Related Problems", along with the guidance of
 George McRae of the University of Montana.  Any errors are solely mine  ;)
-
-This program falls under same license as Perl (Artistic or GPL, your choice).
-
-

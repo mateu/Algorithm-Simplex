@@ -163,6 +163,12 @@ sub current_solution {
     return (\%primal_solution, \%dual_solution);
 }
 
+sub display_tableau {
+    my $self = shift;
+
+    return  $self->tableau;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

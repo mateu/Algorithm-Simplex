@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use PDL::Lite;
@@ -13,7 +15,7 @@ solve_PDL.pl - solve a PDL LP using custom solver.
 # Get shell tableau object for access to EPSILON and MAXIMUM_PIVOTS
 my $tableau_shell = Algorithm::Simplex->new( tableau => [ [] ] );
 
-$LP = {
+my $LP = {
     'Baumol Advertising' => {
         initial_tableau =>
           [ [ 8, 3, 4, 40 ], [ 40, 10, 10, 200 ], [ 160, 60, 80, 0 ], ],

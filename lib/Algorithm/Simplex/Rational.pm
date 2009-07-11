@@ -164,6 +164,19 @@ sub current_solution {
     return (\%primal_solution, \%dual_solution);
 }
 
+sub display_tableau {
+    my $fraction_tableau = shift;
+
+    my $display_tableau;
+    for my $i ( 0 .. $fraction_tableau->number_of_rows ) {
+        for my $j ( 0 .. $fraction_tableau->number_of_columns ) {
+            $display_tableau->[$i]->[$j] = $fraction_tableau->tableau->[$i]->[$j]->as_string;
+        }
+    }
+    return $display_tableau;
+
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

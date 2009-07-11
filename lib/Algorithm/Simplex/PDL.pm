@@ -201,6 +201,20 @@ sub current_solution {
     return (\%primal_solution, \%dual_solution);
 }
 
+sub display_tableau {
+    my $self = shift;
+
+    my @display_tableau;
+    my ($number_of_rows, $number_of_columns) = $self->get_row_and_column_numbers;
+    for my $i ( 0 .. $number_of_rows ) {
+        my $row = $self->tableau->slice("0:$number_of_columns,($i)");
+        my @row   = $row->list;
+        push @display_tableau, \@row;
+    }
+    return \@display_tableau;
+
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

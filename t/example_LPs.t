@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use Test::More tests => 18;
 use PDL::Lite;
 use Algorithm::Simplex::Float;

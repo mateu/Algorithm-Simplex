@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use Algorithm::Simplex::Rational;
@@ -24,7 +26,20 @@ my $LP = {
     },
 };
 
-my $initial_tableau = $LP->{'McRae: Lumber Mill'}->{'initial_tableau'};
+my $LP_2 = {
+    'Hunter: 2 Programmers' => {
+        initial_tableau => [
+        [ 5,  0,    90 ],
+        [ 0,  2,    90 ],
+        [ 3,  0,    60 ],
+        [ 0,  4,    50 ],
+        [ 1000, 800,   0 ],
+        ],
+    },
+};
+
+#my $initial_tableau = $LP->{'McRae: Lumber Mill'}->{'initial_tableau'};
+my $initial_tableau = $LP_2->{'Hunter: 2 Programmers'}->{initial_tableau};
 
 # Copy by value
 my $initial_tableau_2 = matrix_copy($initial_tableau);
@@ -32,8 +47,8 @@ my $initial_tableau_3 = matrix_copy($initial_tableau);
 my $tableau_object;
 
 $tableau_object = Algorithm::Simplex::PDL->new( tableau => $initial_tableau );
-if ( my $final_tableau_object = $tableau_object->solve ) {
-    print Dumper $final_tableau_object->current_solution;
+if ( $tableau_object->solve ) {
+    print Dumper $tableau_object->current_solution;
 }
 else {
     print "Exceeding maximum number of allowed loops: "
@@ -42,8 +57,8 @@ else {
 
 $tableau_object =
   Algorithm::Simplex::Rational->new( tableau => $initial_tableau_2 );
-if ( my $final_tableau_object = $tableau_object->solve ) {
-    print Dumper $final_tableau_object->current_solution;
+if ( $tableau_object->solve ) {
+    print Dumper $tableau_object->current_solution;
 }
 else {
     print "Exceeding maximum number of allowed loops: "
@@ -52,8 +67,8 @@ else {
 
 $tableau_object =
   Algorithm::Simplex::Float->new( tableau => $initial_tableau_3 );
-if ( my $final_tableau_object = $tableau_object->solve ) {
-    print Dumper $final_tableau_object->current_solution;
+if ( $tableau_object->solve ) {
+    print Dumper $tableau_object->current_solution;
 }
 else {
     print "Exceeding maximum number of allowed loops: "

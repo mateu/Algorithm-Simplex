@@ -3,7 +3,7 @@ use Moose;
 use namespace::autoclean;
 use Data::Dumper;
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 has tableau => (
     is       => 'rw',
@@ -67,17 +67,18 @@ Algorithm::Simplex - An implementation of the Simplex Algorithm.
 Given a linear program formulated as a Tucker tableau, a 2D matrix or 
 ArrayRef[ArrayRef] in Perl, seek an optimal solution.
 
-    my $initial_tableau =
-      [ 
-          [   8,  3,  4,  40 ], 
-          [  40, 10, 10, 200 ], 
-          [ 160, 60, 80,   0 ],
-      ];
-      
-    my $final_tableau_object = solve_LP('rational', $initial_tableau);
-
-See the t/example_LPs.t for usage examples.  In particular, 
-study the I<solve_LP> subroutine.  
+    use Algorithm::Simplex::Rational;
+    use Data::Dumper;
+    my $matrix = [
+        [ 5,  2,  30],
+        [ 3,  4,  20],
+        [10,  8,   0],
+    ];
+    my $tableau_object = Algorithm::Simplex::Rational->new( tableau => $matrix );
+    $tableau_object->solve;
+    my ($primal_solution, $dual_solution) = $tableau_object->current_solution;
+    print Dumper $primal_solution;
+    print Dumper $dual_solution;
 
 =head1 Methods
 
@@ -399,7 +400,7 @@ These variable names are set during BUILD of the tableau object.
 
 =head1 Limitations
 
-The API is going to change.
+The API is stabilizing, but still subject to change.
 
 The algorithm requires that the initial tableau be a feasible solution.
 
