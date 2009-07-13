@@ -1,18 +1,20 @@
 package Algorithm::Simplex::Rational;
 use Moose;
-use Algorithm::Simplex::Types;
 use namespace::autoclean;
 extends 'Algorithm::Simplex';
 with 'Algorithm::Simplex::Role::Solve';
+use Algorithm::Simplex::Types;
 use Math::Cephes::Fraction qw(:fract);
 
-has tableau => (
-    is       => 'rw',
-    isa      => 'FractMatrix',
-    required => 1,
-    coerce   => 1,
+has '+tableau' => (
+    isa    => 'FractionMatrix',
+    coerce => 1,
 );
 
+has '+display_tableau' => (
+    isa        => 'FractionDisplay',
+    coerce     => 1,
+);
 
 my $one     = fract( 1, 1 );
 my $neg_one = fract( 1, -1 );
@@ -53,12 +55,11 @@ sub pivot {
             my $neg_a_ic =
               $self->tableau->[$i]->[$pivot_column_number]->rmul($neg_one);
             for my $j ( 0 .. $self->number_of_columns ) {
-                $self->tableau->[$i]->[$j] =
-                  $self->tableau->[$i]->[$j]->radd(
+                $self->tableau->[$i]->[$j] = $self->tableau->[$i]->[$j]->radd(
                     $neg_a_ic->rmul(
                         $self->tableau->[$pivot_row_number]->[$j]
                     )
-                  );
+                );
             }
             $self->tableau->[$i]->[$pivot_column_number] =
               $neg_a_ic->rmul($scale);
@@ -103,15 +104,13 @@ sub determine_positive_ratios {
             push(
                 @positive_ratios,
                 (
-                    $self->tableau->[$row_num]
-                      ->[ $self->number_of_columns ]->{n} *
-                      $self->tableau->[$row_num]->[$pivot_column_number]
-                      ->{d}
-                  ) / (
-                    $self->tableau->[$row_num]->[$pivot_column_number]
+                    $self->tableau->[$row_num]->[ $self->number_of_columns ]
                       ->{n} *
-                      $self->tableau->[$row_num]
-                      ->[ $self->number_of_columns ]->{d}
+                      $self->tableau->[$row_num]->[$pivot_column_number]->{d}
+                  ) / (
+                    $self->tableau->[$row_num]->[$pivot_column_number]->{n} *
+                      $self->tableau->[$row_num]->[ $self->number_of_columns ]
+                      ->{d}
                   )
             );
 
@@ -121,6 +120,7 @@ sub determine_positive_ratios {
     }
     return ( \@positive_ratios, \@positive_ratio_row_numbers );
 }
+
 sub is_optimal {
     my $self = shift;
 
@@ -130,8 +130,10 @@ sub is_optimal {
 
     # if a positve entry exists in the basement row we don't have optimality
     for my $j ( 0 .. $self->number_of_columns - 1 ) {
-        my $basement_row_fraction = $self->tableau->[ $self->number_of_rows ]->[$j];
-        my $basement_row_numeric = $basement_row_fraction->{n} / $basement_row_fraction->{d};
+        my $basement_row_fraction =
+          $self->tableau->[ $self->number_of_rows ]->[$j];
+        my $basement_row_numeric =
+          $basement_row_fraction->{n} / $basement_row_fraction->{d};
         if ( $basement_row_numeric > 0 ) {
             $optimal_flag = 0;
             last;
@@ -150,31 +152,19 @@ sub current_solution {
     # Dependent Primal Variables
     my %primal_solution;
     for my $i ( 0 .. $#y ) {
-        my $rational =  $self->tableau->[$i]->[ $self->number_of_columns ];
+        my $rational = $self->tableau->[$i]->[ $self->number_of_columns ];
         $primal_solution{ $y[$i]->{generic} } = $rational->as_string;
     }
 
     # Dependent Dual Variables
     my %dual_solution;
     for my $j ( 0 .. $#u ) {
-       my $rational = $self->tableau->[ $self->number_of_rows ]->[$j]->rmul($neg_one);
-       $dual_solution{ $u[$j]->{generic} } = $rational->as_string;
+        my $rational =
+          $self->tableau->[ $self->number_of_rows ]->[$j]->rmul($neg_one);
+        $dual_solution{ $u[$j]->{generic} } = $rational->as_string;
     }
-    
-    return (\%primal_solution, \%dual_solution);
-}
 
-sub display_tableau {
-    my $fraction_tableau = shift;
-
-    my $display_tableau;
-    for my $i ( 0 .. $fraction_tableau->number_of_rows ) {
-        for my $j ( 0 .. $fraction_tableau->number_of_columns ) {
-            $display_tableau->[$i]->[$j] = $fraction_tableau->tableau->[$i]->[$j]->as_string;
-        }
-    }
-    return $display_tableau;
-
+    return ( \%primal_solution, \%dual_solution );
 }
 
 __PACKAGE__->meta->make_immutable;

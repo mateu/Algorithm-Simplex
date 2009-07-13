@@ -16,12 +16,9 @@ Algorithm::Simplex::Role::Solve - solve() method implemented as Moose role.
         [ 3,  4,  20],
         [10,  8,   0],
     ];
-    my $tableau_object = Algorithm::Simplex::Rational->new( tableau => $matrix );
-    $tableau_object->solve;
+    my $tableau = Algorithm::Simplex::Rational->new( tableau => $matrix );
+    $tableau->solve;
     print Dumper $tableau_object->display_tableau;
-    my ($primal_solution, $dual_solution) = $tableau_object->current_solution;
-    print Dumper $primal_solution;
-    print Dumper $dual_solution;
      
 =cut    
 

@@ -3,12 +3,18 @@ use Moose;
 use namespace::autoclean;
 use Data::Dumper;
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 
 has tableau => (
     is       => 'rw',
     isa      => 'ArrayRef[ArrayRef]',
     required => 1,
+);
+
+has display_tableau => (
+    is => 'ro',
+    isa => 'ArrayRef[ArrayRef[Str]]',
+    lazy_build => 1,
 );
 
 has number_of_rows => (
@@ -58,6 +64,7 @@ has v_variables => (
     lazy_build => 1,
 );
 
+
 =head1 Name
 
 Algorithm::Simplex - An implementation of the Simplex Algorithm.
@@ -68,23 +75,20 @@ Given a linear program formulated as a Tucker tableau, a 2D matrix or
 ArrayRef[ArrayRef] in Perl, seek an optimal solution.
 
     use Algorithm::Simplex::Rational;
-    use Data::Dumper;
     my $matrix = [
         [ 5,  2,  30],
         [ 3,  4,  20],
         [10,  8,   0],
     ];
-    my $tableau_object = Algorithm::Simplex::Rational->new( tableau => $matrix );
-    $tableau_object->solve;
-    my ($primal_solution, $dual_solution) = $tableau_object->current_solution;
-    print Dumper $primal_solution;
-    print Dumper $dual_solution;
+    my $tableau = Algorithm::Simplex::Rational->new( tableau => $matrix );
+    $tableau->solve;
+    my ($primal_solution, $dual_solution) = $tableau->current_solution;
 
 =head1 Methods
 
 =head2 _build_number_of_rows 
 
-set the number of rows
+Set the number of rows
 
 =cut
 
@@ -96,7 +100,7 @@ sub _build_number_of_rows {
 
 =head2 _build_number_of_columns 
 
-set the number of columns given the tableau matrix
+Set the number of columns given the tableau matrix
 
 =cut
 
@@ -154,6 +158,11 @@ sub _build_v_variables {
         $v_vars->[$i]->{'generic'} = 'v' . $v_index;
     }
     return $v_vars;
+}
+
+sub _build_display_tableau {
+    my $self = shift;
+    return $self->tableau;
 }
 
 =head2 get_bland_number_for
@@ -239,7 +248,7 @@ sub determine_bland_pivot_row_number {
 
 =head2 min_index
 
-Detemine the index of the element with minimal value.  
+Determine the index of the element with minimal value.  
 Used when finding bland pivots.
 
 =cut
@@ -386,7 +395,8 @@ PDL
 
 =head1 Variables
 
-We have implicit variable names: x1, x2 ... , y1, y2, ... , u1, u2 ... , v1, v2 ...
+We have implicit variable names: x1, x2 ... , y1, y2, ... , 
+u1, u2 ... , v1, v2 ...
 
 Our variables are represented by:
 

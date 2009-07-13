@@ -29,6 +29,15 @@ my $LP = {
 
 my $final_tableau_object =
   solve_LP( 'piddle', $LP->{'Baumol Advertising'}->{'initial_tableau'} );
+print "Solved..\n";
+
+my $tableau_object = Algorithm::Simplex::PDL->new( tableau => 
+$LP->{'Baumol Advertising'}->{'initial_tableau'} );
+$tableau_object->solve;
+print "Optimal Tableau: \n";
+print Dumper $tableau_object->display_tableau;
+print "Optimal Solution: \n";
+print Dumper $tableau_object->current_solution;
 print "Finished.\n";
 
 =head1 Subroutines

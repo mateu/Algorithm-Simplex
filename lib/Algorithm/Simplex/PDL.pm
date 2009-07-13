@@ -6,28 +6,22 @@ extends 'Algorithm::Simplex';
 with 'Algorithm::Simplex::Role::Solve';
 use PDL::Lite;
 
-
-
 =head1 Name
 
 Algorithm::Simplex::PDL - PDL model of the Simplex Algorithm
-
-=head1 Methods
-
-=head2 pivot
-
-Do the algebra of a Tucker/Bland pivot.  i.e. Traverse from one node to and 
-adjacent node along the Simplex of feasible solutions.
 
 =cut
 
 # TODO: Probably need EPSILON for zero approximation check like in Float model.
 
-has tableau => (
-    is       => 'rw',
-    isa      => 'Piddle',
-    required => 1,
-    coerce   => 1,
+has '+tableau' => (
+    isa        => 'Piddle',
+    coerce     => 1,
+);
+
+has '+display_tableau' => (
+    isa        => 'PiddleDisplay',
+    coerce     => 1,
 );
 
 =head1 Methods
@@ -42,7 +36,7 @@ The same holds for number of columns.
 
 sub _build_number_of_rows {
     my $self = shift;
-    my ( $number_of_columns, $number_of_rows ) = PDL::dims( $self->tableau );
+    my ( $number_of_columns, $number_of_rows ) = ( $self->tableau->dims);
     return $number_of_rows - 1;
 }
 
@@ -54,11 +48,16 @@ set the number of columns given the tableau matrix
 
 sub _build_number_of_columns {
     my $self = shift;
-    my ( $number_of_columns, $number_of_rows ) = PDL::dims( $self->tableau );
+    my ( $number_of_columns, $number_of_rows ) = ( $self->tableau->dims );
     return $number_of_columns - 1;
 }
 
-no Moose;
+=head2 pivot
+
+Do the algebra of a Tucker/Bland pivot.  i.e. Traverse from one node to and 
+adjacent node along the Simplex of feasible solutions.
+
+=cut
 
 sub pivot {
     my $self                = shift;
@@ -123,9 +122,9 @@ sub determine_simplex_pivot_columns {
     my @simplex_pivot_column_numbers;
     my $n_cols_A       = $self->number_of_columns - 1;
     my $number_of_rows = $self->number_of_rows;
-    my $basement_row   = $self->tableau->slice("0:$n_cols_A,($number_of_rows)");
-    my @basement_row   = $basement_row->list;
-    my $column_number  = 0;
+    my $basement_row = $self->tableau->slice("0:$n_cols_A,($number_of_rows)");
+    my @basement_row = $basement_row->list;
+    my $column_number = 0;
     foreach my $profit_coefficient (@basement_row) {
 
         if ( $profit_coefficient > 0 ) {
@@ -146,11 +145,13 @@ sub determine_positive_ratios {
 
     my $n_rows_A          = $self->number_of_rows - 1;
     my $number_of_columns = $self->number_of_columns;
-    my $pivot_column      = $self->tableau->slice("($pivot_column_number),0:$n_rows_A");
-    my @pivot_column      = $pivot_column->list;
-    my $constant_column   = $self->tableau->slice("($number_of_columns),0:$n_rows_A");
-    my @constant_column   = $constant_column->list;
-    my $row_number        = 0;
+    my $pivot_column =
+      $self->tableau->slice("($pivot_column_number),0:$n_rows_A");
+    my @pivot_column = $pivot_column->list;
+    my $constant_column =
+      $self->tableau->slice("($number_of_columns),0:$n_rows_A");
+    my @constant_column = $constant_column->list;
+    my $row_number      = 0;
     my @positive_ratio_row_numbers;
     my @positive_ratios;
 
@@ -181,38 +182,25 @@ sub current_solution {
     # Dependent Primal Variables
     my $n_rows_A          = $self->number_of_rows - 1;
     my $number_of_columns = $self->number_of_columns;
-    my $constant_column   = $self->tableau->slice("($number_of_columns),0:$n_rows_A");
-    my @constant_column   = $constant_column->list;
+    my $constant_column =
+      $self->tableau->slice("($number_of_columns),0:$n_rows_A");
+    my @constant_column = $constant_column->list;
     my %primal_solution;
     for my $i ( 0 .. $#y ) {
         $primal_solution{ $y[$i]->{generic} } = $constant_column[$i];
     }
-    
+
     # Dependent Dual Variables
     my $n_cols_A       = $self->number_of_columns - 1;
     my $number_of_rows = $self->number_of_rows;
-    my $basement_row   = $self->tableau->slice("0:$n_cols_A,($number_of_rows)");
-    my @basement_row   = $basement_row->list;
+    my $basement_row = $self->tableau->slice("0:$n_cols_A,($number_of_rows)");
+    my @basement_row = $basement_row->list;
     my %dual_solution;
     for my $j ( 0 .. $#u ) {
-        $dual_solution{ $u[$j]->{generic} } = $basement_row[$j]*(-1);
+        $dual_solution{ $u[$j]->{generic} } = $basement_row[$j] * (-1);
     }
-    
-    return (\%primal_solution, \%dual_solution);
-}
 
-sub display_tableau {
-    my $self = shift;
-
-    my @display_tableau;
-    my ($number_of_rows, $number_of_columns) = $self->get_row_and_column_numbers;
-    for my $i ( 0 .. $number_of_rows ) {
-        my $row = $self->tableau->slice("0:$number_of_columns,($i)");
-        my @row   = $row->list;
-        push @display_tableau, \@row;
-    }
-    return \@display_tableau;
-
+    return ( \%primal_solution, \%dual_solution );
 }
 
 __PACKAGE__->meta->make_immutable;

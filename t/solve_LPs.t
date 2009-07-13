@@ -7,7 +7,7 @@ use Algorithm::Simplex::PDL;
 use Algorithm::Simplex::Rational;
 use Data::Dumper;
 
-# Get shell tableau object for access to EPSILON and MAXIMUM_PIVOTS
+# Get shell tableau object for access to EPSILON and MAXIMUM_PIVOTS values
 my $tableau_shell = Algorithm::Simplex->new( tableau => [ [] ] );
 
 my $tests = {
