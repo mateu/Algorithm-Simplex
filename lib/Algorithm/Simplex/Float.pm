@@ -4,7 +4,7 @@ use namespace::autoclean;
 extends 'Algorithm::Simplex';
 with 'Algorithm::Simplex::Role::Solve';
 
-my $one     = 1;
+my $one     =  1;
 my $neg_one = -1;
 my $EMPTY_STRING = q();
 
@@ -53,6 +53,15 @@ sub pivot {
         }
     }
 }
+
+# Count pivots made 
+after 'pivot' => sub {
+    my $self = shift;
+    # TODO: Confirm whether clear is needed or not. Appears not in testing.
+    # $self->clear_display_tableau; 
+    $self->number_of_pivots_made( $self->number_of_pivots_made + 1 );
+    return;
+};
 
 =head2 tableau_is_optimal
 

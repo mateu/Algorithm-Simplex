@@ -1,4 +1,5 @@
 package Algorithm::Simplex::Role::Solve;
+use strict;
 use Moose::Role;
 
 =head1 Name

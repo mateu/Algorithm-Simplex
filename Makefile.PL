@@ -14,6 +14,7 @@ requires(
     'namespace::autoclean'   => 0,
     'Math::Cephes::Fraction' => 0,
     'PDL'                    => 0,
+    'Math::BigRat'           => 0,
 );
 
 install_script glob('script/*.pl');

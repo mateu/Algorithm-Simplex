@@ -93,6 +93,13 @@ sub pivot {
     return $pdl_A;
 }
 
+# Count pivots made 
+after 'pivot' => sub {
+    my $self = shift;
+    $self->number_of_pivots_made( $self->number_of_pivots_made + 1 );
+    return;
+};
+
 sub is_optimal {
     my $self  = shift;
     my $T_pdl = $self->tableau;

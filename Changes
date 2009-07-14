@@ -1,3 +1,8 @@
+0.39    2009 juliol 13
+    - Add number_of_pivots_made attribute
+    - Use Math::BigRat to help coercing into FractionMatrix
+    - Add objective_function_value attribute
+    - Add modified Klee-Minty example
 0.38    2009 juliol 11
     - Refine Synopsis
     - Add display_tableau method

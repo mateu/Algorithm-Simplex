@@ -1,10 +1,13 @@
 package Algorithm::Simplex::Rational;
 use Moose;
-use namespace::autoclean;
 extends 'Algorithm::Simplex';
 with 'Algorithm::Simplex::Role::Solve';
 use Algorithm::Simplex::Types;
+use namespace::autoclean;
 use Math::Cephes::Fraction qw(:fract);
+
+my $one     = fract( 1, 1 );
+my $neg_one = fract( 1, -1 );
 
 has '+tableau' => (
     isa    => 'FractionMatrix',
@@ -16,8 +19,12 @@ has '+display_tableau' => (
     coerce     => 1,
 );
 
-my $one     = fract( 1, 1 );
-my $neg_one = fract( 1, -1 );
+sub _build_objective_function_value {
+    my $self = shift;
+    return $self->tableau
+      ->[$self->number_of_rows]
+      ->[$self->number_of_columns]->rmul($neg_one)->as_string;
+}
 
 =head1 Name
 
@@ -66,6 +73,11 @@ sub pivot {
         }
     }
 }
+after 'pivot' => sub {
+    my $self = shift;
+    $self->number_of_pivots_made( $self->number_of_pivots_made + 1 );
+    return;
+};
 
 sub determine_simplex_pivot_columns {
     my $self = shift;

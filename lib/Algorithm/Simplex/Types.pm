@@ -1,6 +1,8 @@
 package Algorithm::Simplex::Types;
+use strict;
 use Moose::Util::TypeConstraints;
 use PDL::Lite;
+use Math::BigRat;
 use Math::Cephes::Fraction qw(:fract);
 use Data::Dumper;
 
@@ -34,7 +36,7 @@ subtype 'FractionMatrix'
 coerce 'FractionMatrix' 
     => from 'ArrayRef[ArrayRef[Num]]' 
     => via { &make_fractions($_) };
-    
+        
 subtype 'FractionDisplay'
     => as 'ArrayRef[ArrayRef[Str]]'
     => where { 1 }
@@ -47,7 +49,8 @@ coerce 'FractionDisplay'
 
 =head2 make_fractions
 
-Make each rational entry a Math::Cephes::Fraction object.
+Make each rational entry a Math::Cephes::Fraction object
+with the help of Math::BigRat
 
 =cut
 
@@ -56,15 +59,9 @@ sub make_fractions {
     
     for my $i ( 0 ..  scalar @{ $tableau } - 1 ) {
         for my $j ( 0 .. scalar @{ $tableau->[0] } - 1 ) {
-
-            # Check for existing rationals indicated with "/"
-            if ( $tableau->[$i]->[$j] =~ m{(\-?\d+)\/(\-?\d+)} ) {
-                $tableau->[$i]->[$j] = fract( $1, $2 );
-            }
-            else {
-                $tableau->[$i]->[$j] =
-                  fract( $tableau->[$i]->[$j], 1 );
-            }
+            # Using Math::BigRat to make fraction from decimal
+            my $x = Math::BigRat->new( $tableau->[$i]->[$j] );
+            $tableau->[$i]->[$j] = fract( $x->numerator, $x->denominator);
         }
     }
     return $tableau;
