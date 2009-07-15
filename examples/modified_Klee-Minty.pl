@@ -1,4 +1,6 @@
 use Algorithm::Simplex::Rational;
+use strict;
+use warnings;
 use Data::Dumper;
 
 my $klee_minty = [

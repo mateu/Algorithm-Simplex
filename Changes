@@ -1,3 +1,7 @@
+0.40    2009 juliol 15
+    - Document all methods
+    - Add pod tests
+    
 0.39    2009 juliol 13
     - Add number_of_pivots_made attribute
     - Use Math::BigRat to help coercing into FractionMatrix

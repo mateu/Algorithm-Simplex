@@ -1,8 +1,8 @@
 package Algorithm::Simplex::Float;
 use Moose;
-use namespace::autoclean;
 extends 'Algorithm::Simplex';
 with 'Algorithm::Simplex::Role::Solve';
+use namespace::autoclean;
 
 my $one     =  1;
 my $neg_one = -1;
@@ -63,7 +63,7 @@ after 'pivot' => sub {
     return;
 };
 
-=head2 tableau_is_optimal
+=head2 is_optimal
 
 Check the basement row to see if any positive entries exist.  Existence of
 a positive entry means the solution is sub-optimal and optimal otherwise.
@@ -149,6 +149,12 @@ sub determine_positive_ratios {
 
     return ( \@positive_ratios, \@positive_ratio_row_numbers );
 }
+
+=head2 current_solution
+
+Return both the primal (max) and dual (min) solutions for the tableau.
+
+=cut
 
 sub current_solution {
     my $self = shift;

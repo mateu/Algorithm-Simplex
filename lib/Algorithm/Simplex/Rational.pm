@@ -3,8 +3,8 @@ use Moose;
 extends 'Algorithm::Simplex';
 with 'Algorithm::Simplex::Role::Solve';
 use Algorithm::Simplex::Types;
-use namespace::autoclean;
 use Math::Cephes::Fraction qw(:fract);
+use namespace::autoclean;
 
 my $one     = fract( 1, 1 );
 my $neg_one = fract( 1, -1 );
@@ -34,8 +34,8 @@ Algorithm::Simplex::Rational - Rational model of the Simplex Algorithm
 
 =head2 pivot
 
-Do the algebra of a Tucker/Bland pivot.  i.e. Traverse from one node to and 
-adjacent node along the Simplex of feasible solutions.
+Do the algebra of a Tucker/Bland Simplex pivot.  i.e. Traverse from one node 
+to an adjacent node along the Simplex of feasible solutions.
 
 =cut
 
@@ -79,6 +79,17 @@ after 'pivot' => sub {
     return;
 };
 
+=head2 determine_simplex_pivot_columns
+
+Look at the basement row to see where positive entries exists. 
+Columns with positive entries in the basement row are pivot column candidates.
+
+Should run optimality test, is_optimal, first to insure 
+at least one positive entry exists in the basement row which then 
+means we can increase the objective value for the maximization problem.
+
+=cut 
+
 sub determine_simplex_pivot_columns {
     my $self = shift;
 
@@ -94,6 +105,13 @@ sub determine_simplex_pivot_columns {
     }
     return (@simplex_pivot_column_numbers);
 }
+
+=head2 determine_positive_ratios
+
+Starting with the pivot column find the entry that yields the lowest
+positive b to entry ratio that has lowest bland number in the event of ties.
+
+=cut
 
 sub determine_positive_ratios {
     my $self                = shift;
@@ -133,6 +151,12 @@ sub determine_positive_ratios {
     return ( \@positive_ratios, \@positive_ratio_row_numbers );
 }
 
+=head2 is_optimal
+
+Return 1 if the current solution is optimal, 0 otherwise.
+
+=cut
+
 sub is_optimal {
     my $self = shift;
 
@@ -153,6 +177,12 @@ sub is_optimal {
     }
     return $optimal_flag;
 }
+
+=head2 current_solution
+
+Return both the primal (max) and dual (min) solutions for the tableau.
+
+=cut
 
 sub current_solution {
     my $self = shift;

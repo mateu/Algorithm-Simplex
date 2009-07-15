@@ -1,10 +1,10 @@
 package Algorithm::Simplex::PDL;
 use Moose;
-use Algorithm::Simplex::Types;
-use namespace::autoclean;
 extends 'Algorithm::Simplex';
 with 'Algorithm::Simplex::Role::Solve';
+use Algorithm::Simplex::Types;
 use PDL::Lite;
+use namespace::autoclean;
 
 =head1 Name
 
@@ -55,7 +55,8 @@ sub _build_number_of_columns {
 =head2 pivot
 
 Do the algebra of a Tucker/Bland pivot.  i.e. Traverse from one node to and 
-adjacent node along the Simplex of feasible solutions.
+adjacent node along the Simplex of feasible solutions.  This pivot method
+is particular to this PDL model.
 
 =cut
 
@@ -100,6 +101,12 @@ after 'pivot' => sub {
     return;
 };
 
+=head2 is_optimal
+
+Return 1 if the current solution is optimal, 0 otherwise.
+
+=cut
+
 sub is_optimal {
     my $self  = shift;
     my $T_pdl = $self->tableau;
@@ -121,11 +128,20 @@ sub is_optimal {
     return $optimal_flag;
 }
 
+=head2 determine_simplex_pivot_columns
+
+Look at the basement row to see where positive entries exists. 
+Columns with positive entries in the basement row are pivot column candidates.
+
+Should run optimality test, is_optimal, first to insure 
+at least one positive entry exists in the basement row which then 
+means we can increase the objective value for the maximization problem.
+
+=cut 
+
 sub determine_simplex_pivot_columns {
     my $self = shift;
 
-    # Look at basement row to see where positive entries exists.
-    # Run optimality test first to insure at least one positve profit exists.
     my @simplex_pivot_column_numbers;
     my $n_cols_A       = $self->number_of_columns - 1;
     my $number_of_rows = $self->number_of_rows;
@@ -143,10 +159,14 @@ sub determine_simplex_pivot_columns {
     return @simplex_pivot_column_numbers;
 }
 
-sub determine_positive_ratios {
+=head2 determine_positive_ratios
 
-# Starting with the pivot column find the entry that yields the lowest
-# positive b to entry ratio that has lowest bland number in the event of ties.
+Starting with the pivot column find the entry that yields the lowest
+positive b to entry ratio that has lowest bland number in the event of ties.
+
+=cut
+
+sub determine_positive_ratios {
     my $self                = shift;
     my $pivot_column_number = shift;
 
@@ -172,12 +192,24 @@ sub determine_positive_ratios {
     return ( \@positive_ratios, \@positive_ratio_row_numbers );
 }
 
-sub get_pdl {
+=head2 display_pdl
+
+Given a Piddle return it as a string in a Matrix like format.
+
+=cut
+
+sub display_pdl {
     my $self   = shift;
     my $pdl    = $self->tableau;
     my $output = "$pdl";
     return $output;
 }
+
+=head2 current_solution
+
+Return both the primal (max) and dual (min) solutions for the tableau.
+
+=cut
 
 sub current_solution {
     my $self = shift;

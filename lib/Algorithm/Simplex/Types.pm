@@ -1,5 +1,6 @@
 package Algorithm::Simplex::Types;
 use strict;
+use warnings;
 use Moose::Util::TypeConstraints;
 use PDL::Lite;
 use Math::BigRat;
@@ -67,7 +68,7 @@ sub make_fractions {
     return $tableau;
 }
 
-=head display_fractions
+=head2 display_fractions
 
 Convert each fraction object entry into a string.
 
@@ -109,4 +110,3 @@ sub display_piddle {
 }
 
 1;
-

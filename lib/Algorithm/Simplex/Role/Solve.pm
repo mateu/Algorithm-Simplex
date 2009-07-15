@@ -1,5 +1,6 @@
 package Algorithm::Simplex::Role::Solve;
 use strict;
+use warnings;
 use Moose::Role;
 
 =head1 Name
@@ -27,6 +28,21 @@ requires 'tableau',
          'determine_bland_pivot_row_and_column_numbers',
          'pivot',
          'exchange_pivot_variables';
+=head1 Methods
+
+=head2 solve
+
+Walk the simplex of feasible solutions by moving to an adjacent vertex
+one step at a time.  Each vertex of the feasible region corresponds to
+a tableau.
+
+This solve() method assumes we are starting with a feasible solution.
+This is referred to a phase 2 of the Simplex algorithm, where phase 1
+is obtaining a feasible solution so phase 2 can be applied.
+
+Returns 1 if an optimal solution is found, 0 otherwise.
+
+=cut
 
 sub solve {
     my $tableau_object = shift;
