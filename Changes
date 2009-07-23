@@ -1,3 +1,7 @@
+0.42    2009 juliol ? 
+    - Add more POD
+    - Critic Simplex base module and adjust code
+    
 0.41    2009 juliol 22 
     - Add Copyright Information
     - Make all test use strict and warnings

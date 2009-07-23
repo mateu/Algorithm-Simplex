@@ -1,9 +1,10 @@
 package Algorithm::Simplex;
 use Moose;
 use namespace::autoclean;
+use Carp;
 use Data::Dumper;
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 
 has tableau => (
     is       => 'rw',
@@ -45,7 +46,7 @@ has number_of_pivots_made => (
 
 has EPSILON => (
     isa     => 'Num',
-    is      => 'ro',
+    is      => 'rw',
     default => 1e-13,
 );
 
@@ -56,22 +57,22 @@ has MAXIMUM_PIVOTS => (
 );
 
 has x_variables => (
-    isa        => 'ArrayRef[HashRef]',
+    isa        => 'ArrayRef[HashRef[Str]]',
     is         => 'rw',
     lazy_build => 1,
 );
 has 'y_variables' => (
-    isa        => 'ArrayRef[HashRef]',
+    isa        => 'ArrayRef[HashRef[Str]]',
     is         => 'rw',
     lazy_build => 1,
 );
 has u_variables => (
-    isa        => 'ArrayRef[HashRef]',
+    isa        => 'ArrayRef[HashRef[Str]]',
     is         => 'rw',
     lazy_build => 1,
 );
 has v_variables => (
-    isa        => 'ArrayRef[HashRef]',
+    isa        => 'ArrayRef[HashRef[Str]]',
     is         => 'rw',
     lazy_build => 1,
 );
@@ -127,7 +128,9 @@ sub _build_number_of_columns {
 
 =head2 _build_x_variables
 
-Set x variable names for the given tableau.
+Set x variable names for the given tableau, x1, x2 ... xn
+These are the decision variables of the maximization problem.
+The maximization problem is read horizontally in a Tucker tableau.
 
 =cut
 
@@ -142,6 +145,13 @@ sub _build_x_variables {
     return $x_vars;
 }
 
+=head2 _build_y_variables
+
+Set y variable names for the given tableau.
+These are the slack variables of the maximization problem.
+
+=cut
+
 sub _build_y_variables {
     my $self = shift;
 
@@ -153,6 +163,13 @@ sub _build_y_variables {
     return $y_vars;
 }
 
+=head2 _build_u_variables
+
+Set u variable names for the given tableau.
+These are the slack variables of the minimization problem.
+
+=cut
+
 sub _build_u_variables {
     my $self = shift;
 
@@ -163,6 +180,14 @@ sub _build_u_variables {
     }
     return $u_vars;
 }
+
+=head2 _build_v_variables
+
+Set v variable names for the given tableau: v1, v2 ... vm
+These are the decision variables for the minimization problem.
+The minimization problem is read horizontally in a Tucker tableau.
+
+=cut
 
 sub _build_v_variables {
     my $self = shift;
@@ -200,15 +225,20 @@ sub get_bland_number_for {
     my $index         = shift;
     my $generic_name  = $self->$variables->[$index]->{'generic'};
 
-    $generic_name =~ m{(.)(\d+)};
-    my $var = $1;
-    my $num = $2;
+    my ( $var, $num );
+    if ( $generic_name =~ m{(.)(\d+)}mxs ) {
+        $var = $1;
+        $num = $2;
+    }
+    else {
+        croak "The generic variable names have format issues.\n";
+    }
     my $start_num =
         $var eq 'x' ? 1
       : $var eq 'y' ? 2
       : $var eq 'v' ? 4
       : $var eq 'u' ? 3
-      :               die "Variable name: $var does not equal x, y, v or u";
+      :   croak "Variable name: $var does not equal x, y, v or u";
     my $bland_number = $start_num . $num;
     return $bland_number;
 }
@@ -220,8 +250,7 @@ Find the pivot column using Bland ordering technique to prevent cycles.
 =cut
 
 sub determine_bland_pivot_column_number {
-    my $self                         = shift;
-    my @simplex_pivot_column_numbers = @_;
+    my ($self, @simplex_pivot_column_numbers) = @_;
 
     my @bland_number_for_simplex_pivot_column;
     foreach my $col_number (@simplex_pivot_column_numbers) {
@@ -245,11 +274,10 @@ Find the pivot row using Bland ordering technique to prevent cycles.
 =cut
 
 sub determine_bland_pivot_row_number {
-    my $self = shift;
-    my ( $positive_ratios, $positive_ratio_row_numbers ) = @_;
+    my ($self, $positive_ratios, $positive_ratio_row_numbers) = @_;
 
-   # Now that we have the ratios and their respective rows we can find the min
-   # and then select the lowest bland min if there are ties.
+    # Now that we have the ratios and their respective rows we can find the min
+    # and then select the lowest bland min if there are ties.
     my @min_indices = $self->min_index($positive_ratios);
     my @min_ratio_row_numbers =
       map { $positive_ratio_row_numbers->[$_] } @min_indices;
@@ -275,14 +303,15 @@ Used when finding bland pivots.
 =cut
 
 sub min_index {
-    my $self = shift;
-    my $l    = $_[0];
+    my ($self, $l)  = @_;
     my $n    = @{$l};
-    return () unless $n;
+    if (! $n) {
+        return ();
+    }
     my $v_min = $l->[0];
     my @i_min = (0);
 
-    for ( my $i = 1 ; $i < $n ; $i++ ) {
+    for my $i (1..$n-1) {
         if ( $l->[$i] < $v_min ) {
             $v_min = $l->[$i];
             @i_min = ($i);
@@ -297,8 +326,10 @@ sub min_index {
 
 =head2 exchange_pivot_variables
 
-Exchange the variables when the a pivot is done.  The method pivot does the
-algrebra while this method does the variable swapping (and thus tracking).
+Exchange the variables when a pivot is done.  The method pivot() does the
+algrebra while this method does the variable swapping, and thus tracking of 
+what variables take on non-zero values.  This is needed to accurately report
+an optimal solution.
 
 =cut
 
@@ -308,9 +339,8 @@ sub exchange_pivot_variables {
     my $pivot_column_number = shift;
 
     # exchange variables based on $pivot_column_number and $pivot_row_number
-    my $increasing_primal_variable =
-      $self->x_variables->[$pivot_column_number];
-    my $zeroeing_primal_variable = $self->y_variables->[$pivot_row_number];
+    my $increasing_primal_variable = $self->x_variables->[$pivot_column_number];
+    my $zeroeing_primal_variable   = $self->y_variables->[$pivot_row_number];
     $self->x_variables->[$pivot_column_number] = $zeroeing_primal_variable;
     $self->y_variables->[$pivot_row_number]    = $increasing_primal_variable;
 
@@ -318,6 +348,7 @@ sub exchange_pivot_variables {
     my $zeroeing_dual_variable   = $self->u_variables->[$pivot_column_number];
     $self->v_variables->[$pivot_row_number]    = $zeroeing_dual_variable;
     $self->u_variables->[$pivot_column_number] = $increasing_dual_variable;
+    return;
 }
 
 =head2 get_row_and_column_numbers 
@@ -352,16 +383,6 @@ sub determine_bland_pivot_row_and_column_numbers {
     return ( $pivot_row_number, $pivot_column_number );
 }
 
-# Clear display tableau after pivot so new one can be lazily built.
-# Also increment pivots made counter.
-#after 'pivot' => sub {
-#    warn "After pivot\n";
-#    my $self = shift;
-#    $self->clear_display_tableau;
-#    $self->number_of_pivots_made( $self->number_of_pivots_made + 1 );
-#    return;
-#};
-
 __PACKAGE__->meta->make_immutable;
 
 1;
@@ -388,7 +409,11 @@ You may distribute this code under the same terms as Perl itself.
 =head1 Description
 
 Base class for the Simplex model using Tucker tableaus.  
-It defines some of the methods concretely, and others such as:
+
+The implementation is currently limited to phase II,
+i.e. one must start with a feasible solution.
+
+This class defines some of the methods concretely, and others such as:
 
 =over 3
 
@@ -398,7 +423,7 @@ pivot
 
 =item *
 
-tableau_is_optimal
+is_optimal
 
 =item *
 
@@ -436,12 +461,12 @@ u1, u2 ... , v1, v2 ...
 Our variables are represented by:
 
     x, y, u, and v 
-    
+
 as found in Nering and Tuckers' book. 
 
 x and y are for the primal LP while u and v belong to the dual LP.
 
-These variable names are set during BUILD of the tableau object.
+These variable names are set using the lazy_build feature of Moose.
 
 =head1 Limitations
 
