@@ -3,7 +3,7 @@ use Moose;
 use namespace::autoclean;
 use Data::Dumper;
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 has tableau => (
     is       => 'rw',
@@ -99,7 +99,9 @@ ArrayRef[ArrayRef] in Perl, seek an optimal solution.
 
 =head2 _build_number_of_rows 
 
-Set the number of rows
+Set the number of rows.
+This number represent the number of rows of the
+coefficient matrix.  It is one less than the full tableau.
 
 =cut
 
@@ -111,7 +113,9 @@ sub _build_number_of_rows {
 
 =head2 _build_number_of_columns 
 
-Set the number of columns given the tableau matrix
+Set the number of columns given the tableau matrix.
+This number represent the number of columns of the
+coefficient matrix.
 
 =cut
 
@@ -372,6 +376,10 @@ Strong design influence by George McRae at the University of Montana.
 
 #moose for solid assistance in the refactor: particularly _build_* approach 
 and PDL + Moose namespace management, 'inner'.
+
+=head1 Copyright 
+
+Copyright 2009, Mateu X. Hunter
 
 =head1 License
 

@@ -155,27 +155,24 @@ sub determine_positive_ratios {
 
 Return 1 if the current solution is optimal, 0 otherwise.
 
+Check basement row for having all non-positive entries which
+would => optimal (while in phase 2).
+
 =cut
 
 sub is_optimal {
     my $self = shift;
 
-    # check basement row for having non-positive entries which
-    # would => optimal when in phase 2.
-    my $optimal_flag = 1;
-
-    # if a positve entry exists in the basement row we don't have optimality
     for my $j ( 0 .. $self->number_of_columns - 1 ) {
         my $basement_row_fraction =
           $self->tableau->[ $self->number_of_rows ]->[$j];
         my $basement_row_numeric =
           $basement_row_fraction->{n} / $basement_row_fraction->{d};
         if ( $basement_row_numeric > 0 ) {
-            $optimal_flag = 0;
-            last;
+            return 0;
         }
     }
-    return $optimal_flag;
+    return 1;
 }
 
 =head2 current_solution

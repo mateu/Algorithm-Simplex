@@ -4,8 +4,8 @@ extends 'Algorithm::Simplex';
 with 'Algorithm::Simplex::Role::Solve';
 use namespace::autoclean;
 
-my $one     =  1;
-my $neg_one = -1;
+my $one          = 1;
+my $neg_one      = -1;
 my $EMPTY_STRING = q();
 
 =head1 Name
@@ -45,20 +45,19 @@ sub pivot {
             for my $j ( 0 .. $self->number_of_columns ) {
                 $self->tableau->[$i]->[$j] =
                   $self->tableau->[$i]->[$j] +
-                  ( $neg_a_ic * ( $self->tableau->[$pivot_row_number]->[$j] )
-                  );
+                  ( $neg_a_ic * ( $self->tableau->[$pivot_row_number]->[$j] ) );
             }
-            $self->tableau->[$i]->[$pivot_column_number] =
-              $neg_a_ic * ($scale);
+            $self->tableau->[$i]->[$pivot_column_number] = $neg_a_ic * ($scale);
         }
     }
 }
 
-# Count pivots made 
+# Count pivots made
 after 'pivot' => sub {
     my $self = shift;
+
     # TODO: Confirm whether clear is needed or not. Appears not in testing.
-    # $self->clear_display_tableau; 
+    # $self->clear_display_tableau;
     $self->number_of_pivots_made( $self->number_of_pivots_made + 1 );
     return;
 };
@@ -69,23 +68,20 @@ Check the basement row to see if any positive entries exist.  Existence of
 a positive entry means the solution is sub-optimal and optimal otherwise.
 This is how we decide when to stop the algorithm.
 
+Use EPSILON instead of zero because we're dealing with floats (imperfect numbers).
+
 =cut
 
 sub is_optimal {
     my $self = shift;
 
-# check basement row for having non-positive entries which would => optimal
-# when in phase 2.  Use EPSILON instead of zero because we're dealing with floats
-    my $optimal_flag = 1;
     for my $j ( 0 .. $self->number_of_columns - 1 ) {
-        if (
-            $self->tableau->[ $self->number_of_rows ]->[$j] > $self->EPSILON )
+        if ( $self->tableau->[ $self->number_of_rows ]->[$j] > $self->EPSILON )
         {
-            $optimal_flag = 0;
-            last;
+            return 0;
         }
     }
-    return $optimal_flag;
+    return 1;
 }
 
 =head2 determine_simplex_pivot_columns
@@ -166,16 +162,18 @@ sub current_solution {
     # Dependent Primal Variables
     my %primal_solution;
     for my $i ( 0 .. $#y ) {
-        $primal_solution{ $y[$i]->{generic} } = $self->tableau->[$i]->[ $self->number_of_columns ];
+        $primal_solution{ $y[$i]->{generic} } =
+          $self->tableau->[$i]->[ $self->number_of_columns ];
     }
 
     # Dependent Dual Variables
     my %dual_solution;
     for my $j ( 0 .. $#u ) {
-       $dual_solution{ $u[$j]->{generic} } = $self->tableau->[ $self->number_of_rows ]->[$j] * -1;
+        $dual_solution{ $u[$j]->{generic} } =
+          $self->tableau->[ $self->number_of_rows ]->[$j] * -1;
     }
-    
-    return (\%primal_solution, \%dual_solution);
+
+    return ( \%primal_solution, \%dual_solution );
 }
 
 __PACKAGE__->meta->make_immutable;

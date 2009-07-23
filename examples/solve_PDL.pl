@@ -1,9 +1,9 @@
+use Algorithm::Simplex::PDL;
 use strict;
 use warnings;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 use PDL::Lite;
-use Algorithm::Simplex::PDL;
 use Data::Dumper;
 
 =head1 Name
@@ -52,7 +52,7 @@ sub solve_LP {
     my $model   = shift;
     my $tableau = shift;
     
-    $tableau = pdl $tableau;
+    $tableau = PDL->pdl($tableau);
 
     my $tableau_object = Algorithm::Simplex::PDL->new(tableau => $tableau);
 

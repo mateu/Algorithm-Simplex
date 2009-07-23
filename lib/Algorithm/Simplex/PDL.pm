@@ -117,15 +117,13 @@ sub is_optimal {
     my $basement_row   = $T_pdl->slice("0:$n_cols_A,($number_of_rows)");
     my @basement_row   = $basement_row->list;
     my @positive_profit_column_numbers;
-    my $optimal_flag = 1;
     foreach my $profit_coefficient (@basement_row) {
         if ( $profit_coefficient > 0 ) {
-            $optimal_flag = 0;
-            last;
+            return 0;
         }
     }
 
-    return $optimal_flag;
+    return 1;
 }
 
 =head2 determine_simplex_pivot_columns

@@ -1,3 +1,9 @@
+0.41    2009 juliol 22 
+    - Add Copyright Information
+    - Make all test use strict and warnings
+    - Add PDL::Lite to Makefile.PL to make Kwalitee happy
+    - Simplify is_optimal() code
+    
 0.40    2009 juliol 15
     - Document all methods
     - Add pod tests
@@ -7,6 +13,7 @@
     - Use Math::BigRat to help coercing into FractionMatrix
     - Add objective_function_value attribute
     - Add modified Klee-Minty example
+    
 0.38    2009 juliol 11
     - Refine Synopsis
     - Add display_tableau method

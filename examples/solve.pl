@@ -1,10 +1,10 @@
+use Algorithm::Simplex::Rational;
+use Algorithm::Simplex::PDL;
+use Algorithm::Simplex::Float;
 use strict;
 use warnings;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
-use Algorithm::Simplex::Rational;
-use Algorithm::Simplex::PDL;
-use Algorithm::Simplex::Float;
 use PDL::Lite;
 use Data::Dumper;
 
