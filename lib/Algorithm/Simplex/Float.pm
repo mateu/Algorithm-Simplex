@@ -176,6 +176,24 @@ sub current_solution {
     return ( \%primal_solution, \%dual_solution );
 }
 
+=head2  is_basic_feasible_solution
+
+Check if we have any negative values in the right hand column.
+
+=cut
+
+sub is_basic_feasible_solution {
+    my $self = shift;
+
+    for my $i ( 0 .. $self->number_of_rows - 1 ) {
+        if ( $self->tableau->[ $i ]->[$self->number_of_columns] <  -($self->EPSILON) )
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
