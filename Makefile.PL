@@ -16,7 +16,9 @@ requires(
     'PDL'                    => 0,
     'PDL::Lite'              => 0,
     'Math::BigRat'           => 0,
+    'strictures'             => 0,
 );
 
 install_script glob('script/*.pl');
+auto_install;
 WriteAll;
