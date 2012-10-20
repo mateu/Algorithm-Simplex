@@ -22,10 +22,10 @@ Algorithm::Simplex::Role::Solve - solve() method implemented as Moose role.
      
 =cut    
 
-requires('tableau', 
-         'determine_bland_pivot_row_and_column_numbers',
-         'pivot',
-         'exchange_pivot_variables');
+requires(
+    'tableau', 'determine_bland_pivot_row_and_column_numbers',
+    'pivot',   'exchange_pivot_variables'
+);
 
 =head1 Methods
 
@@ -47,16 +47,16 @@ sub solve {
     my $tableau_object = shift;
 
     my $counter = 1;
-    until ( $tableau_object->is_optimal ) {
-        my ( $pivot_row_number, $pivot_column_number ) =
+    until ($tableau_object->is_optimal) {
+        my ($pivot_row_number, $pivot_column_number) =
           $tableau_object->determine_bland_pivot_row_and_column_numbers;
-        $tableau_object->pivot( $pivot_row_number, $pivot_column_number );
-        $tableau_object->exchange_pivot_variables( $pivot_row_number,
-            $pivot_column_number );
+        $tableau_object->pivot($pivot_row_number, $pivot_column_number);
+        $tableau_object->exchange_pivot_variables($pivot_row_number,
+            $pivot_column_number);
         $counter++;
 
         # Too many pivots?
-        if ( $counter > $tableau_object->MAXIMUM_PIVOTS ) {
+        if ($counter > $tableau_object->MAXIMUM_PIVOTS) {
             warn "HALT: Exceeded the maximum number of pivots allowed: "
               . $tableau_object->MAXIMUM_PIVOTS . "\n";
             return 0;

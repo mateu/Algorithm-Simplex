@@ -16,18 +16,16 @@ my $not_bfs_matrix = [
     [ 292,    11.3674, 242.707, 61.7215, 0 ],
 ];
 
-my $tableau_object =
-  Algorithm::Simplex::Float->new( tableau => $not_bfs_matrix );
-is( $tableau_object->is_basic_feasible_solution,
-    0, 'NOT a basic FEASIBLE solution' );
-    
+my $tableau_object = Algorithm::Simplex::Float->new(tableau => $not_bfs_matrix);
+is($tableau_object->is_basic_feasible_solution,
+    0, 'NOT a basic FEASIBLE solution');
+
 # Test a BFS.
 my $is_bfs_matrix =
   [ [ 8, 3, 4, 40 ], [ 40, 10, 10, 200 ], [ 160, 60, 80, 0 ], ];
 
-$tableau_object =
-  Algorithm::Simplex::Float->new( tableau => $is_bfs_matrix );
-is( $tableau_object->is_basic_feasible_solution, 1, 'IS a basic FEASIBLE solution' );
-    
+$tableau_object = Algorithm::Simplex::Float->new(tableau => $is_bfs_matrix);
+is($tableau_object->is_basic_feasible_solution,
+    1, 'IS a basic FEASIBLE solution');
 
 done_testing();

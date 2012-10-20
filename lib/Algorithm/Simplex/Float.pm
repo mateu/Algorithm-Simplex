@@ -29,23 +29,23 @@ sub pivot {
 
     # Do tucker algebra on pivot row
     my $scale =
-      $one / ( $self->tableau->[$pivot_row_number]->[$pivot_column_number] );
-    for my $j ( 0 .. $self->number_of_columns ) {
+      $one / ($self->tableau->[$pivot_row_number]->[$pivot_column_number]);
+    for my $j (0 .. $self->number_of_columns) {
         $self->tableau->[$pivot_row_number]->[$j] =
           $self->tableau->[$pivot_row_number]->[$j] * ($scale);
     }
     $self->tableau->[$pivot_row_number]->[$pivot_column_number] = $scale;
 
     # Do tucker algebra elsewhere
-    for my $i ( 0 .. $self->number_of_rows ) {
-        if ( $i != $pivot_row_number ) {
+    for my $i (0 .. $self->number_of_rows) {
+        if ($i != $pivot_row_number) {
 
             my $neg_a_ic =
               $self->tableau->[$i]->[$pivot_column_number] * ($neg_one);
-            for my $j ( 0 .. $self->number_of_columns ) {
+            for my $j (0 .. $self->number_of_columns) {
                 $self->tableau->[$i]->[$j] =
                   $self->tableau->[$i]->[$j] +
-                  ( $neg_a_ic * ( $self->tableau->[$pivot_row_number]->[$j] ) );
+                  ($neg_a_ic * ($self->tableau->[$pivot_row_number]->[$j]));
             }
             $self->tableau->[$i]->[$pivot_column_number] = $neg_a_ic * ($scale);
         }
@@ -60,7 +60,7 @@ after 'pivot' => sub {
 
     # TODO: Confirm whether clear is needed or not. Appears not in testing.
     # $self->clear_display_tableau;
-    $self->number_of_pivots_made( $self->number_of_pivots_made + 1 );
+    $self->number_of_pivots_made($self->number_of_pivots_made + 1);
     return;
 };
 
@@ -77,9 +77,8 @@ Use EPSILON instead of zero because we're dealing with floats (imperfect numbers
 sub is_optimal {
     my $self = shift;
 
-    for my $j ( 0 .. $self->number_of_columns - 1 ) {
-        if ( $self->tableau->[ $self->number_of_rows ]->[$j] > $self->EPSILON )
-        {
+    for my $j (0 .. $self->number_of_columns - 1) {
+        if ($self->tableau->[ $self->number_of_rows ]->[$j] > $self->EPSILON) {
             return 0;
         }
     }
@@ -105,11 +104,11 @@ sub determine_simplex_pivot_columns {
 # when the cost is zero.  This would not lead us to optimality, but if we were
 # already in an optimal state if may (should) lead to another optimal state.
 # This would only apply then in the optimal case, i.e. all entries non-positive.
-    for my $col_num ( 0 .. $self->number_of_columns - 1 ) {
-        if ( $self->tableau->[ $self->number_of_rows ]->[$col_num] >
-            $self->EPSILON )
+    for my $col_num (0 .. $self->number_of_columns - 1) {
+        if ($self->tableau->[ $self->number_of_rows ]->[$col_num] >
+            $self->EPSILON)
         {
-            push( @simplex_pivot_column_numbers, $col_num );
+            push(@simplex_pivot_column_numbers, $col_num);
         }
     }
     return (@simplex_pivot_column_numbers);
@@ -132,20 +131,19 @@ sub determine_positive_ratios {
     my @positive_ratio_row_numbers;
 
     #print "Column: $possible_pivot_column\n";
-    for my $row_num ( 0 .. $self->number_of_rows - 1 ) {
-        if ( $self->tableau->[$row_num]->[$pivot_column_number] >
-            $self->EPSILON )
+    for my $row_num (0 .. $self->number_of_rows - 1) {
+        if ($self->tableau->[$row_num]->[$pivot_column_number] > $self->EPSILON)
         {
-            push( @positive_ratios,
+            push(@positive_ratios,
                 $self->tableau->[$row_num]->[ $self->number_of_columns ] /
-                  $self->tableau->[$row_num]->[$pivot_column_number] );
+                  $self->tableau->[$row_num]->[$pivot_column_number]);
 
             # Track the rows that give ratios
             push @positive_ratio_row_numbers, $row_num;
         }
     }
 
-    return ( \@positive_ratios, \@positive_ratio_row_numbers );
+    return (\@positive_ratios, \@positive_ratio_row_numbers);
 }
 
 =head2 current_solution
@@ -163,19 +161,19 @@ sub current_solution {
 
     # Dependent Primal Variables
     my %primal_solution;
-    for my $i ( 0 .. $#y ) {
+    for my $i (0 .. $#y) {
         $primal_solution{ $y[$i]->{generic} } =
           $self->tableau->[$i]->[ $self->number_of_columns ];
     }
 
     # Dependent Dual Variables
     my %dual_solution;
-    for my $j ( 0 .. $#u ) {
+    for my $j (0 .. $#u) {
         $dual_solution{ $u[$j]->{generic} } =
           $self->tableau->[ $self->number_of_rows ]->[$j] * -1;
     }
 
-    return ( \%primal_solution, \%dual_solution );
+    return (\%primal_solution, \%dual_solution);
 }
 
 =head2  is_basic_feasible_solution
@@ -187,8 +185,9 @@ Check if we have any negative values in the right hand column.
 sub is_basic_feasible_solution {
     my $self = shift;
 
-    for my $i ( 0 .. $self->number_of_rows - 1 ) {
-        if ( $self->tableau->[ $i ]->[$self->number_of_columns] <  -($self->EPSILON) )
+    for my $i (0 .. $self->number_of_rows - 1) {
+        if ($self->tableau->[$i]->[ $self->number_of_columns ] <
+            -($self->EPSILON))
         {
             return 0;
         }

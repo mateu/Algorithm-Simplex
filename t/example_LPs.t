@@ -8,7 +8,7 @@ use Algorithm::Simplex::Rational;
 use Data::Dumper;
 
 # Get shell tableau object for access to EPSILON and MAXIMUM_PIVOTS
-my $tableau_shell = Algorithm::Simplex->new( tableau => [ [] ] );
+my $tableau_shell = Algorithm::Simplex->new(tableau => [ [] ]);
 
 my $tests = {
     'Baumol: Advertising' => {
@@ -35,8 +35,7 @@ my $tests = {
         ],
     },
     'McRae: Lumber Mill' => {
-        initial_tableau =>
-          [ [ 1, 3, 2, 10 ], [ 2, 1, 1, 8 ], [ 3, 2, 4, 0 ] ],
+        initial_tableau => [ [ 1, 3, 2, 10 ], [ 2, 1, 1, 8 ], [ 3, 2, 4, 0 ] ],
         optimal_tableau => [
             [ -1 / 3, 2 / 3,  5 / 3,   4 ],
             [ 2 / 3,  -1 / 3, -1 / 3,  2 ],
@@ -100,17 +99,17 @@ my $tests = {
         ],
     }
 };
-my ( $model, $initial_tableau, $optimal_tableau, $optimal_tableau_piddle,
-    $final_tableau_object, $final_matrix_as_float, $full_test_name );
+my ($model, $initial_tableau, $optimal_tableau, $optimal_tableau_piddle,
+    $final_tableau_object, $final_matrix_as_float, $full_test_name);
 
-for my $test ( keys %{$tests} ) {
+for my $test (keys %{$tests}) {
 
     $initial_tableau = $tests->{$test}->{initial_tableau};
     $optimal_tableau = $tests->{$test}->{optimal_tableau};
 
     $model                = 'float';
     $full_test_name       = $test . ' - ' . ucfirst $model;
-    $final_tableau_object = solve_LP( $model, $initial_tableau );
+    $final_tableau_object = solve_LP($model, $initial_tableau);
     ok(
         are_matrices_equal_within_EPSILON(
             $final_tableau_object->tableau,
@@ -121,7 +120,7 @@ for my $test ( keys %{$tests} ) {
 
     $model                  = 'piddle';
     $full_test_name         = $test . ' - ' . ucfirst $model;
-    $final_tableau_object   = solve_LP( $model, $initial_tableau );
+    $final_tableau_object   = solve_LP($model, $initial_tableau);
     $optimal_tableau_piddle = pdl $optimal_tableau;
     ok(
         piddles_are_equal(
@@ -132,7 +131,7 @@ for my $test ( keys %{$tests} ) {
 
     $model                = 'rational';
     $full_test_name       = $test . ' - ' . ucfirst $model;
-    $final_tableau_object = solve_LP( $model, $initial_tableau );
+    $final_tableau_object = solve_LP($model, $initial_tableau);
     $final_matrix_as_float =
       float_matrix_from_fraction_tableau($final_tableau_object);
     ok(
@@ -156,33 +155,31 @@ sub solve_LP {
     my $tableau = shift;
 
     # Extra step for piddles.
-#    $tableau = pdl $tableau if ( $model eq 'piddle' );
+    #    $tableau = pdl $tableau if ( $model eq 'piddle' );
 
     my $tableau_object =
-      $model eq 'float'
-      ? Algorithm::Simplex::Float->new( tableau => $tableau )
-      : $model eq 'piddle'
-      ? Algorithm::Simplex::PDL->new( tableau => $tableau )
+        $model eq 'float' ? Algorithm::Simplex::Float->new(tableau => $tableau)
+      : $model eq 'piddle' ? Algorithm::Simplex::PDL->new(tableau => $tableau)
       : $model eq 'rational'
-      ? Algorithm::Simplex::Rational->new( tableau => $tableau )
+      ? Algorithm::Simplex::Rational->new(tableau => $tableau)
       : die "The model type: $model could not be found.";
 
     # Extra step for rationals (fracts)
-#    $tableau_object
-#      ->convert_natural_number_tableau_to_fractional_object_tableau
-#      if ( $model eq 'rational' );
+    #    $tableau_object
+    #      ->convert_natural_number_tableau_to_fractional_object_tableau
+    #      if ( $model eq 'rational' );
 
     my $counter = 1;
-    until ( $tableau_object->is_optimal ) {
-        my ( $pivot_row_number, $pivot_column_number ) =
+    until ($tableau_object->is_optimal) {
+        my ($pivot_row_number, $pivot_column_number) =
           $tableau_object->determine_bland_pivot_row_and_column_numbers;
-        $tableau_object->pivot( $pivot_row_number, $pivot_column_number );
-        $tableau_object->exchange_pivot_variables( $pivot_row_number,
-            $pivot_column_number );
+        $tableau_object->pivot($pivot_row_number, $pivot_column_number);
+        $tableau_object->exchange_pivot_variables($pivot_row_number,
+            $pivot_column_number);
         $counter++;
 
         # Too many pivots?
-        if ( $counter > $tableau_shell->MAXIMUM_PIVOTS ) {
+        if ($counter > $tableau_shell->MAXIMUM_PIVOTS) {
             warn "HALT: Exceeded the maximum number of pivots allowed: "
               . $tableau_shell->MAXIMUM_PIVOTS . "\n";
             return 0;
@@ -195,8 +192,8 @@ sub piddles_are_equal {
     my $pdl_1 = shift;
     my $pdl_2 = shift;
 
-    my $result_pdl = abs( $pdl_1 - $pdl_2 );
-    if ( all $result_pdl < $tableau_shell->EPSILON ) {
+    my $result_pdl = abs($pdl_1 - $pdl_2);
+    if (all $result_pdl < $tableau_shell->EPSILON) {
         return 1;
     }
     else {
@@ -210,14 +207,13 @@ sub are_matrices_equal_within_EPSILON {
 
     my $nbr_of_rows = scalar @{$M_1};
     my $nbr_of_cols = scalar @{ $M_1->[0] };
-    for my $i ( 0 .. $nbr_of_rows - 1 ) {
-        for my $j ( 0 .. $nbr_of_cols - 1 ) {
+    for my $i (0 .. $nbr_of_rows - 1) {
+        for my $j (0 .. $nbr_of_cols - 1) {
             if (
-                abs( $M_1->[$i]->[$j] - $M_2->[$i]->[$j] ) >
-                $tableau_shell->EPSILON )
+                abs($M_1->[$i]->[$j] - $M_2->[$i]->[$j]) >
+                $tableau_shell->EPSILON)
             {
-                warn "DIFF: "
-                  . abs( $M_1->[$i]->[$j] - $M_2->[$i]->[$j] ) . "\n";
+                warn "DIFF: " . abs($M_1->[$i]->[$j] - $M_2->[$i]->[$j]) . "\n";
                 return 0;
             }
         }
@@ -229,14 +225,13 @@ sub float_matrix_from_fraction_tableau {
     my $fraction_tableau = shift;
 
     my $float_matrix;
-    for my $i ( 0 .. $fraction_tableau->number_of_rows ) {
-        for my $j ( 0 .. $fraction_tableau->number_of_columns ) {
+    for my $i (0 .. $fraction_tableau->number_of_rows) {
+        for my $j (0 .. $fraction_tableau->number_of_columns) {
             my $fraction_object = $fraction_tableau->tableau->[$i]->[$j];
-            my $float = $fraction_object->{n} / $fraction_object->{d};
+            my $float           = $fraction_object->{n} / $fraction_object->{d};
             $float_matrix->[$i]->[$j] = $float;
         }
     }
     return $float_matrix;
 
 }
-

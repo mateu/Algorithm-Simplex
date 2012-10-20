@@ -8,7 +8,7 @@ use Algorithm::Simplex::Rational;
 use Data::Dumper;
 
 # Get shell tableau object for access to EPSILON and MAXIMUM_PIVOTS values
-my $tableau_shell = Algorithm::Simplex->new( tableau => [ [] ] );
+my $tableau_shell = Algorithm::Simplex->new(tableau => [ [] ]);
 
 my $tests = {
     'Baumol: Advertising' => {
@@ -35,8 +35,7 @@ my $tests = {
         ],
     },
     'McRae: Lumber Mill' => {
-        initial_tableau =>
-          [ [ 1, 3, 2, 10 ], [ 2, 1, 1, 8 ], [ 3, 2, 4, 0 ] ],
+        initial_tableau => [ [ 1, 3, 2, 10 ], [ 2, 1, 1, 8 ], [ 3, 2, 4, 0 ] ],
         optimal_tableau => [
             [ -1 / 3, 2 / 3,  5 / 3,   4 ],
             [ 2 / 3,  -1 / 3, -1 / 3,  2 ],
@@ -100,13 +99,10 @@ my $tests = {
         ],
     }
 };
-my (
-    $model, $initial_tableau, $optimal_tableau, $tableau_object,
-    $optimal_tableau_piddle, $final_matrix_as_float,
-    $full_test_name
-);
+my ($model, $initial_tableau, $optimal_tableau, $tableau_object,
+    $optimal_tableau_piddle, $final_matrix_as_float, $full_test_name);
 
-for my $test ( keys %{$tests} ) {
+for my $test (keys %{$tests}) {
 
     $initial_tableau = $tests->{$test}->{initial_tableau};
     $optimal_tableau = $tests->{$test}->{optimal_tableau};
@@ -114,36 +110,28 @@ for my $test ( keys %{$tests} ) {
     $model          = 'float';
     $full_test_name = $test . ' - ' . ucfirst $model;
     $tableau_object =
-      Algorithm::Simplex::Float->new( tableau => $initial_tableau );
+      Algorithm::Simplex::Float->new(tableau => $initial_tableau);
     $tableau_object->solve;
-    ok(
-        are_equal_matrices(
-            $tableau_object->tableau, $optimal_tableau
-        ),
-        $full_test_name
-    );
+    ok(are_equal_matrices($tableau_object->tableau, $optimal_tableau),
+        $full_test_name);
 
     $model          = 'piddle';
     $full_test_name = $test . ' - ' . ucfirst $model;
-    $tableau_object = Algorithm::Simplex::PDL->new( tableau => $initial_tableau );
+    $tableau_object = Algorithm::Simplex::PDL->new(tableau => $initial_tableau);
     $tableau_object->solve;
     $optimal_tableau_piddle = pdl $optimal_tableau;
-    ok(
-        are_equal_piddles(
-            $optimal_tableau_piddle, $tableau_object->tableau
-        ),
-        $full_test_name
-    );
+    ok(are_equal_piddles($optimal_tableau_piddle, $tableau_object->tableau),
+        $full_test_name);
 
     $model          = 'rational';
     $full_test_name = $test . ' - ' . ucfirst $model;
     $tableau_object =
-      Algorithm::Simplex::Rational->new( tableau => $initial_tableau );
+      Algorithm::Simplex::Rational->new(tableau => $initial_tableau);
     $tableau_object->solve;
     $final_matrix_as_float =
       float_matrix_from_fraction_tableau($tableau_object);
-    ok( are_equal_matrices( $final_matrix_as_float, $optimal_tableau ),
-        $full_test_name );
+    ok(are_equal_matrices($final_matrix_as_float, $optimal_tableau),
+        $full_test_name);
 }
 
 =head1 Subroutines
@@ -159,8 +147,8 @@ sub are_equal_piddles {
     my $pdl_1 = shift;
     my $pdl_2 = shift;
 
-    my $result_pdl = abs( $pdl_1 - $pdl_2 );
-    if ( all $result_pdl < $tableau_shell->EPSILON ) {
+    my $result_pdl = abs($pdl_1 - $pdl_2);
+    if (all $result_pdl < $tableau_shell->EPSILON) {
         return 1;
     }
     else {
@@ -181,14 +169,13 @@ sub are_equal_matrices {
 
     my $nbr_of_rows = scalar @{$M_1};
     my $nbr_of_cols = scalar @{ $M_1->[0] };
-    for my $i ( 0 .. $nbr_of_rows - 1 ) {
-        for my $j ( 0 .. $nbr_of_cols - 1 ) {
+    for my $i (0 .. $nbr_of_rows - 1) {
+        for my $j (0 .. $nbr_of_cols - 1) {
             if (
-                abs( $M_1->[$i]->[$j] - $M_2->[$i]->[$j] ) >
-                $tableau_shell->EPSILON )
+                abs($M_1->[$i]->[$j] - $M_2->[$i]->[$j]) >
+                $tableau_shell->EPSILON)
             {
-                warn "DIFF: "
-                  . abs( $M_1->[$i]->[$j] - $M_2->[$i]->[$j] ) . "\n";
+                warn "DIFF: " . abs($M_1->[$i]->[$j] - $M_2->[$i]->[$j]) . "\n";
                 return 0;
             }
         }
@@ -200,14 +187,13 @@ sub float_matrix_from_fraction_tableau {
     my $fraction_tableau = shift;
 
     my $float_matrix;
-    for my $i ( 0 .. $fraction_tableau->number_of_rows ) {
-        for my $j ( 0 .. $fraction_tableau->number_of_columns ) {
+    for my $i (0 .. $fraction_tableau->number_of_rows) {
+        for my $j (0 .. $fraction_tableau->number_of_columns) {
             my $fraction_object = $fraction_tableau->tableau->[$i]->[$j];
-            my $float = $fraction_object->{n} / $fraction_object->{d};
+            my $float           = $fraction_object->{n} / $fraction_object->{d};
             $float_matrix->[$i]->[$j] = $float;
         }
     }
     return $float_matrix;
 
 }
-

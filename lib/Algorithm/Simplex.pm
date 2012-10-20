@@ -8,30 +8,30 @@ our $VERSION = '0.42';
 
 has tableau => (
     is       => 'rw',
-    isa      => ArrayRef[ArrayRef[Num]],
+    isa      => ArrayRef [ ArrayRef [Num] ],
     required => 1,
 );
 
 has display_tableau => (
-    is         => 'lazy',
-    isa        => ArrayRef[ArrayRef[Str]],
+    is  => 'lazy',
+    isa => ArrayRef [ ArrayRef [Str] ],
 );
 
 has objective_function_value => (
-    is         => 'lazy',
-    isa        => Str,
+    is  => 'lazy',
+    isa => Str,
 );
 
 has number_of_rows => (
-    is         => 'lazy',
-    isa        => Int,
-    init_arg   => undef,
+    is       => 'lazy',
+    isa      => Int,
+    init_arg => undef,
 );
 
 has number_of_columns => (
-    is         => 'lazy',
-    isa        => Int,
-    init_arg   => undef,
+    is       => 'lazy',
+    isa      => Int,
+    init_arg => undef,
 );
 
 has number_of_pivots_made => (
@@ -53,20 +53,20 @@ has MAXIMUM_PIVOTS => (
 );
 
 has x_variables => (
-    is         => 'lazy',
-    isa        => ArrayRef[HashRef[Str]],
+    is  => 'lazy',
+    isa => ArrayRef [ HashRef [Str] ],
 );
 has 'y_variables' => (
-    is         => 'lazy',
-    isa        => ArrayRef[HashRef[Str]],
+    is  => 'lazy',
+    isa => ArrayRef [ HashRef [Str] ],
 );
 has u_variables => (
-    is         => 'lazy',
-    isa        => ArrayRef[HashRef[Str]],
+    is  => 'lazy',
+    isa => ArrayRef [ HashRef [Str] ],
 );
 has v_variables => (
-    is         => 'lazy',
-    isa        => ArrayRef[HashRef[Str]],
+    is  => 'lazy',
+    isa => ArrayRef [ HashRef [Str] ],
 );
 
 =head1 Name
@@ -130,7 +130,7 @@ sub _build_x_variables {
     my $self = shift;
 
     my $x_vars;
-    for my $j ( 0 .. $self->number_of_columns - 1 ) {
+    for my $j (0 .. $self->number_of_columns - 1) {
         my $x_index = $j + 1;
         $x_vars->[$j]->{'generic'} = 'x' . $x_index;
     }
@@ -148,7 +148,7 @@ sub _build_y_variables {
     my $self = shift;
 
     my $y_vars;
-    for my $i ( 0 .. $self->number_of_rows - 1 ) {
+    for my $i (0 .. $self->number_of_rows - 1) {
         my $y_index = $i + 1;
         $y_vars->[$i]->{'generic'} = 'y' . $y_index;
     }
@@ -166,7 +166,7 @@ sub _build_u_variables {
     my $self = shift;
 
     my $u_vars;
-    for my $j ( 0 .. $self->number_of_columns - 1 ) {
+    for my $j (0 .. $self->number_of_columns - 1) {
         my $u_index = $j + 1;
         $u_vars->[$j]->{'generic'} = 'u' . $u_index;
     }
@@ -185,7 +185,7 @@ sub _build_v_variables {
     my $self = shift;
 
     my $v_vars;
-    for my $i ( 0 .. $self->number_of_rows - 1 ) {
+    for my $i (0 .. $self->number_of_rows - 1) {
         my $v_index = $i + 1;
         $v_vars->[$i]->{'generic'} = 'v' . $v_index;
     }
@@ -217,8 +217,8 @@ sub get_bland_number_for {
     my $index         = shift;
     my $generic_name  = $self->$variables->[$index]->{'generic'};
 
-    my ( $var, $num );
-    if ( $generic_name =~ m{(.)(\d+)}mxs ) {
+    my ($var, $num);
+    if ($generic_name =~ m{(.)(\d+)}mxs) {
         $var = $1;
         $num = $2;
     }
@@ -230,7 +230,7 @@ sub get_bland_number_for {
       : $var eq 'y' ? 2
       : $var eq 'v' ? 4
       : $var eq 'u' ? 3
-      :   croak "Variable name: $var does not equal x, y, v or u";
+      :               croak "Variable name: $var does not equal x, y, v or u";
     my $bland_number = $start_num . $num;
     return $bland_number;
 }
@@ -247,13 +247,13 @@ sub determine_bland_pivot_column_number {
     my @bland_number_for_simplex_pivot_column;
     foreach my $col_number (@simplex_pivot_column_numbers) {
         push @bland_number_for_simplex_pivot_column,
-          $self->get_bland_number_for( 'x', $col_number );
+          $self->get_bland_number_for('x', $col_number);
     }
 
 # Pass blands number to routine that returns index of location where minimum bland occurs.
 # Use this index to return the bland column column number from @positive_profit_column_numbers
     my @bland_column_number_index =
-      $self->min_index( \@bland_number_for_simplex_pivot_column );
+      $self->min_index(\@bland_number_for_simplex_pivot_column);
     my $bland_column_number_index = $bland_column_number_index[0];
 
     return $simplex_pivot_column_numbers[$bland_column_number_index];
@@ -276,13 +276,13 @@ sub determine_bland_pivot_row_number {
     my @bland_number_for_min_ratio_rows;
     foreach my $row_number (@min_ratio_row_numbers) {
         push @bland_number_for_min_ratio_rows,
-          $self->get_bland_number_for( 'y', $row_number );
+          $self->get_bland_number_for('y', $row_number);
     }
 
 # Pass blands number to routine that returns index of location where minimum bland occurs.
 # Use this index to return the bland row number.
     my @bland_min_ratio_row_index =
-      $self->min_index( \@bland_number_for_min_ratio_rows );
+      $self->min_index(\@bland_number_for_min_ratio_rows);
     my $bland_min_ratio_row_index = $bland_min_ratio_row_index[0];
     return $min_ratio_row_numbers[$bland_min_ratio_row_index];
 }
@@ -295,20 +295,20 @@ Used when finding bland pivots.
 =cut
 
 sub min_index {
-    my ($self, $l)  = @_;
-    my $n    = @{$l};
-    if (! $n) {
+    my ($self, $l) = @_;
+    my $n = @{$l};
+    if (!$n) {
         return ();
     }
     my $v_min = $l->[0];
     my @i_min = (0);
 
-    for my $i (1..$n-1) {
-        if ( $l->[$i] < $v_min ) {
+    for my $i (1 .. $n - 1) {
+        if ($l->[$i] < $v_min) {
             $v_min = $l->[$i];
             @i_min = ($i);
         }
-        elsif ( $l->[$i] == $v_min ) {
+        elsif ($l->[$i] == $v_min) {
             push @i_min, $i;
         }
     }
@@ -366,13 +366,13 @@ sub determine_bland_pivot_row_and_column_numbers {
     my @simplex_pivot_columns = $self->determine_simplex_pivot_columns;
     my $pivot_column_number =
       $self->determine_bland_pivot_column_number(@simplex_pivot_columns);
-    my ( $positive_ratios, $positive_ratio_row_numbers ) =
+    my ($positive_ratios, $positive_ratio_row_numbers) =
       $self->determine_positive_ratios($pivot_column_number);
     my $pivot_row_number =
-      $self->determine_bland_pivot_row_number( $positive_ratios,
-        $positive_ratio_row_numbers );
+      $self->determine_bland_pivot_row_number($positive_ratios,
+        $positive_ratio_row_numbers);
 
-    return ( $pivot_row_number, $pivot_column_number );
+    return ($pivot_row_number, $pivot_column_number);
 }
 
 1;
