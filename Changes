@@ -1,6 +1,6 @@
-0.42    2009 juliol ? 
+    - Convert from Moose to Moo
     - Add more POD
-    - Critic Simplex base module and adjust code
+    - critic and tidy code
     
 0.41    2009 juliol 22 
     - Add Copyright Information
