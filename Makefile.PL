@@ -10,13 +10,12 @@ license 'perl';
 version_from 'lib/Algorithm/Simplex.pm';
 
 requires(
-    'Moose'                  => 0,
-    'namespace::autoclean'   => 0,
+    'Moo'                    => 0,
+    'namespace::clean'       => 0,
     'Math::Cephes::Fraction' => 0,
     'PDL'                    => 0,
     'PDL::Lite'              => 0,
     'Math::BigRat'           => 0,
-    'strictures'             => 0,
 );
 
 install_script glob('script/*.pl');
