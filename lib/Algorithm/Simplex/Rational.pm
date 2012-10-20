@@ -1,22 +1,23 @@
 package Algorithm::Simplex::Rational;
-use Moose;
+use Moo;
 extends 'Algorithm::Simplex';
 with 'Algorithm::Simplex::Role::Solve';
-use Algorithm::Simplex::Types;
+use MooX::Types::MooseLike::Base qw( InstanceOf ArrayRef Str );
 use Math::Cephes::Fraction qw(:fract);
-use namespace::autoclean;
+use Math::BigRat;
+use namespace::clean;
 
 my $one     = fract( 1, 1 );
 my $neg_one = fract( 1, -1 );
 
 has '+tableau' => (
-    isa    => 'FractionMatrix',
-    coerce => 1,
+    isa    => ArrayRef[ArrayRef[InstanceOf['Math::Cephes::Fraction']]],
+    coerce => sub { &make_fractions($_[0]) },
 );
 
 has '+display_tableau' => (
-    isa        => 'FractionDisplay',
-    coerce     => 1,
+    isa        => ArrayRef[ArrayRef[Str]],
+    coerce     => sub { &display_fractions($_[0]) },
 );
 
 sub _build_objective_function_value {
@@ -206,6 +207,45 @@ sub current_solution {
     return ( \%primal_solution, \%dual_solution );
 }
 
-__PACKAGE__->meta->make_immutable;
+=head2 Coercions
+
+=head3 make_fractions
+
+Make each rational entry a Math::Cephes::Fraction object
+with the help of Math::BigRat
+
+=cut
+
+sub make_fractions {
+    my $tableau = shift;
+    
+    for my $i ( 0 ..  scalar @{ $tableau } - 1 ) {
+        for my $j ( 0 .. scalar @{ $tableau->[0] } - 1 ) {
+            # Using Math::BigRat to make fraction from decimal
+            my $x = Math::BigRat->new( $tableau->[$i]->[$j] );
+            $tableau->[$i]->[$j] = fract( $x->numerator, $x->denominator);
+        }
+    }
+    return $tableau;
+}
+
+=head3 display_fractions
+
+Convert each fraction object entry into a string.
+
+=cut
+
+sub display_fractions {
+    my $fraction_tableau = shift;
+
+    my $display_tableau;
+    for my $i ( 0 .. scalar @{ $fraction_tableau } - 1 ) {
+        for my $j ( 0 .. scalar @{ $fraction_tableau->[0] } - 1  ) {
+            $display_tableau->[$i]->[$j] = $fraction_tableau->[$i]->[$j]->as_string;
+        }
+    }
+    return $display_tableau;
+
+}
 
 1;

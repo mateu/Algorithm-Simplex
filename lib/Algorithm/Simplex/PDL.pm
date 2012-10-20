@@ -1,10 +1,10 @@
 package Algorithm::Simplex::PDL;
-use Moose;
+use Moo;
+use MooX::Types::MooseLike::Base qw( ArrayRef Str );
 extends 'Algorithm::Simplex';
 with 'Algorithm::Simplex::Role::Solve';
-use Algorithm::Simplex::Types;
 use PDL::Lite;
-use namespace::autoclean;
+use namespace::clean;
 
 =head1 Name
 
@@ -15,14 +15,16 @@ Algorithm::Simplex::PDL - PDL model of the Simplex Algorithm
 # TODO: Probably need EPSILON for zero approximation check like in Float model.
 
 has '+tableau' => (
-    isa        => 'Piddle',
-    coerce     => 1,
+    isa        => sub { $_[0]->isa('PDL') },
+    coerce     => sub { PDL->pdl($_[0]) },
 );
 
 has '+display_tableau' => (
-    isa        => 'PiddleDisplay',
-    coerce     => 1,
+    isa        => ArrayRef[ArrayRef[Str]],
+    coerce     => sub { &display_piddle($_[0]) },
 );
+
+
 
 =head1 Methods
 
@@ -240,6 +242,26 @@ sub current_solution {
     return ( \%primal_solution, \%dual_solution );
 }
 
-__PACKAGE__->meta->make_immutable;
+=head2 display_piddle 
+
+Coercion:  convert a PDL into an ArrayRef[ArrayRef[Num]]
+
+=cut
+
+sub display_piddle {
+    my $piddle_tableau = shift;
+
+    my @display_tableau;
+    my ($number_of_columns, $number_of_rows) = ($piddle_tableau->dims);
+    my $number_of_zero_based_rows = $number_of_rows - 1;
+    my $number_of_zero_based_columns = $number_of_columns - 1;
+    for my $i ( 0 .. $number_of_zero_based_rows ) {
+        my $row = $piddle_tableau->slice("0:$number_of_zero_based_columns,($i)");
+        my @row   = $row->list;
+        push @display_tableau, \@row;
+    }
+    
+    return \@display_tableau;
+}
 
 1;

@@ -1,80 +1,72 @@
 package Algorithm::Simplex;
-use Moose;
-use namespace::autoclean;
+use Moo;
+use MooX::Types::MooseLike::Base qw( ArrayRef HashRef Num Int Str );
+use namespace::clean;
 use Carp;
-use Data::Dumper;
 
 our $VERSION = '0.42';
 
 has tableau => (
     is       => 'rw',
-    isa      => 'ArrayRef[ArrayRef[Num]]',
+    isa      => ArrayRef[ArrayRef[Num]],
     required => 1,
 );
 
 has display_tableau => (
-    is         => 'ro',
-    isa        => 'ArrayRef[ArrayRef[Str]]',
-    lazy_build => 1,
+    is         => 'lazy',
+    isa        => ArrayRef[ArrayRef[Str]],
 );
 
 has objective_function_value => (
-    is         => 'ro',
-    isa        => 'Str',
-    lazy_build => 1,
+    is         => 'lazy',
+    isa        => Str,
 );
 
 has number_of_rows => (
-    is         => 'ro',
-    isa        => 'Int',
+    is         => 'lazy',
+    isa        => Int,
     init_arg   => undef,
-    lazy_build => 1,
 );
 
 has number_of_columns => (
-    is         => 'ro',
-    isa        => 'Int',
+    is         => 'lazy',
+    isa        => Int,
     init_arg   => undef,
-    lazy_build => 1,
 );
 
 has number_of_pivots_made => (
     is      => 'rw',
-    isa     => 'Int',
-    default => 0,
+    isa     => Int,
+    default => sub { 0 },
 );
 
 has EPSILON => (
-    isa     => 'Num',
     is      => 'rw',
-    default => 1e-13,
+    isa     => Num,
+    default => sub { 1e-13 },
 );
 
 has MAXIMUM_PIVOTS => (
-    isa     => 'Int',
     is      => 'rw',
-    default => 200,
+    isa     => Int,
+    default => sub { 200 },
 );
 
 has x_variables => (
-    isa        => 'ArrayRef[HashRef[Str]]',
-    is         => 'rw',
-    lazy_build => 1,
+    is         => 'lazy',
+    isa        => ArrayRef[HashRef[Str]],
 );
 has 'y_variables' => (
-    isa        => 'ArrayRef[HashRef[Str]]',
-    is         => 'rw',
-    lazy_build => 1,
+    is         => 'lazy',
+    isa        => ArrayRef[HashRef[Str]],
 );
 has u_variables => (
-    isa        => 'ArrayRef[HashRef[Str]]',
-    is         => 'rw',
-    lazy_build => 1,
+    is         => 'lazy',
+    isa        => ArrayRef[HashRef[Str]],
 );
 has v_variables => (
-    isa        => 'ArrayRef[HashRef[Str]]',
-    is         => 'rw',
-    lazy_build => 1,
+    is         => 'lazy',
+    isa        => ArrayRef[HashRef[Str]],
 );
 
 =head1 Name
@@ -383,8 +375,6 @@ sub determine_bland_pivot_row_and_column_numbers {
     return ( $pivot_row_number, $pivot_column_number );
 }
 
-__PACKAGE__->meta->make_immutable;
-
 1;
 
 __END__
@@ -466,7 +456,7 @@ as found in Nering and Tuckers' book.
 
 x and y are for the primal LP while u and v belong to the dual LP.
 
-These variable names are set using the lazy_build feature of Moose.
+These variable names are set using the lazy feature of Moo.
 
 =head1 Limitations
 

@@ -1,8 +1,8 @@
 package Algorithm::Simplex::Float;
-use Moose;
+use Moo;
 extends 'Algorithm::Simplex';
 with 'Algorithm::Simplex::Role::Solve';
-use namespace::autoclean;
+use namespace::clean;
 
 my $one          = 1;
 my $neg_one      = -1;
@@ -193,7 +193,5 @@ sub is_basic_feasible_solution {
     }
     return 1;
 }
-
-__PACKAGE__->meta->make_immutable;
 
 1;

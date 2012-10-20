@@ -1,7 +1,5 @@
 package Algorithm::Simplex::Role::Solve;
-use strict;
-use warnings;
-use Moose::Role;
+use Moo::Role;
 
 =head1 Name
 
@@ -24,10 +22,11 @@ Algorithm::Simplex::Role::Solve - solve() method implemented as Moose role.
      
 =cut    
 
-requires 'tableau', 
+requires('tableau', 
          'determine_bland_pivot_row_and_column_numbers',
          'pivot',
-         'exchange_pivot_variables';
+         'exchange_pivot_variables');
+
 =head1 Methods
 
 =head2 solve
