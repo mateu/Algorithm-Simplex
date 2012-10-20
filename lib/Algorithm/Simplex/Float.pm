@@ -50,6 +50,8 @@ sub pivot {
             $self->tableau->[$i]->[$pivot_column_number] = $neg_a_ic * ($scale);
         }
     }
+
+    return;
 }
 
 # Count pivots made

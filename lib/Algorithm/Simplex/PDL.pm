@@ -118,7 +118,6 @@ sub is_optimal {
     my $number_of_rows = $self->number_of_rows;
     my $basement_row   = $T_pdl->slice("0:$n_cols_A,($number_of_rows)");
     my @basement_row   = $basement_row->list;
-    my @positive_profit_column_numbers;
     foreach my $profit_coefficient (@basement_row) {
         if ( $profit_coefficient > 0 ) {
             return 0;

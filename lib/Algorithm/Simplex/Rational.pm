@@ -73,6 +73,8 @@ sub pivot {
               $neg_a_ic->rmul($scale);
         }
     }
+
+    return;
 }
 after 'pivot' => sub {
     my $self = shift;
@@ -120,7 +122,6 @@ sub determine_positive_ratios {
 
 # Build Ratios and Choose row(s) that yields min for the bland simplex column as a candidate pivot point.
 # To be a Simplex pivot we must not consider negative entries
-    my %pivot_for;
     my @positive_ratios;
     my @positive_ratio_row_numbers;
 
