@@ -1,6 +1,8 @@
 blib/*
 inc/*
+MANIFEST
 META.yml
+MYMETA.*
 Makefile
 Makefile.old
 pm_to_blib
