@@ -1,6 +1,7 @@
 blib/*
 inc/*
 MANIFEST
+MANIFEST.bak
 META.yml
 MYMETA.*
 Makefile
@@ -11,3 +12,6 @@ pm_to_blib
 *.out
 Distar
 .tidyall.d/
+
+# yes that's right, distar makes it for us
+MANIFEST.SKIP

@@ -1,6 +1,6 @@
 Install Algorithm::Simplex either using the cpan shell like this:
 
-        cpan Algorithm::Simplex
+        cpanm Algorithm::Simplex
 
     or by downloading and extracting the tarball from:
       

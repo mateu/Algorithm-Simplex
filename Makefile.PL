@@ -1,23 +1,35 @@
-use inc::Module::Install;
+use strict;
+use warnings FATAL => 'all';
+use 5.008001;
+use ExtUtils::MakeMaker;
+(do 'maint/Makefile.PL.include' or die $@) unless -f 'META.yml';
 
-name 'Algorithm-Simplex';
-
-all_from 'lib/Algorithm/Simplex.pm';
-
-abstract 'Simplex Algorithm Implementation using Tucker Tableaux';
-author 'Mateu X Hunter';
-license 'perl';
-version_from 'lib/Algorithm/Simplex.pm';
-
-requires(
-    'Moo'                    => 0,
-    'namespace::clean'       => 0,
-    'Math::Cephes::Fraction' => 0,
-    'PDL'                    => 0,
-    'PDL::Lite'              => 0,
-    'Math::BigRat'           => 0,
+my %RUN_DEPS = (
+  'Moo'                    => 0,
+  'namespace::clean'       => 0,
+  'Math::Cephes::Fraction' => 0,
+  'PDL'                    => 0,
+  'PDL::Lite'              => 0,
+  'Math::BigRat'           => 0,
+);
+my %BUILD_DEPS = (
+  'Test::More'  => 0.96,
 );
 
-install_script glob('script/*.pl');
-auto_install;
-WriteAll;
+WriteMakefile(
+  NAME           => 'Algorithm-Simplex',
+  VERSION_FROM   => 'lib/Algorithm/Simplex.pm',
+  PREREQ_PM      => {
+    %RUN_DEPS,
+  },
+  BUILD_REQUIRES => {
+    %BUILD_DEPS,
+  },
+  META_ADD => {
+    resources => {
+      repository  => 'git://github.com/mateu/Algorithm-Simplex.git',
+      bugtracker  => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Algorithm-Simplex',
+    },
+  },
+  LICENSE => 'perl',
+);

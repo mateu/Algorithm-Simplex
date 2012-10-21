@@ -1,2 +1,1 @@
-^(?!script/|examples/|lib/|inc/|t/|Makefile.PL$|README$|INSTALL$|MANIFEST$|Changes$|LICENSE$|META.yml$)
-
+^(?!lib/.*\.pm$|t/.*\.t$|t/lib/.*\.pm$|xt/.*\.t$|xt/lib/.*\.pm$|(?-xism:[^/]*\.PL)$|(?-xism:Changes|MANIFEST|README|META\.yml)$|maint/(?-xism:[^.].*)$)
