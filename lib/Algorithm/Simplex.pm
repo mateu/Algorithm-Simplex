@@ -71,7 +71,7 @@ has v_variables => (
 
 =head1 Name
 
-Algorithm::Simplex - Simplex Algorithm Implementation using Tucker Tableaux'
+Algorithm::Simplex - Simplex Algorithm Implementation using Tucker Tableaux
 
 =head1 Synopsis
 
