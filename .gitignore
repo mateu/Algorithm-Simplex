@@ -9,4 +9,5 @@ pm_to_blib
 .project
 .includepath
 *.out
+Distar
 .tidyall.d/

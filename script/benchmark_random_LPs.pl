@@ -7,7 +7,6 @@ use Getopt::Long;
 use Algorithm::Simplex::Float;
 use Algorithm::Simplex::PDL;
 use Algorithm::Simplex::Rational;
-use Data::Dumper;
 
 =head1 Name
 
