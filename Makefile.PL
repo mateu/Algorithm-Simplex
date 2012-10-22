@@ -6,6 +6,7 @@ use ExtUtils::MakeMaker;
 
 my %RUN_DEPS = (
   'Moo'                    => 0,
+  'MooX::Types::MooseLike' => 0.16,
   'namespace::clean'       => 0,
   'Math::Cephes::Fraction' => 0,
   'PDL'                    => 0,
