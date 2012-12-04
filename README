@@ -1,6 +1,6 @@
 Name
     Algorithm::Simplex - Simplex Algorithm Implementation using Tucker
-    Tableaux'
+    Tableaux
 
 Synopsis
     Given a linear program formulated as a Tucker tableau, a 2D matrix or
